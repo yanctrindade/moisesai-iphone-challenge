@@ -65,6 +65,7 @@ View → ViewModel → UseCase → Repository → Service (Network)
 - `async/await` for all asynchronous work
 - `@MainActor` on ViewModels and Views
 - `Sendable` conformance on all data/domain models
+- **Prefer `actor` over `@unchecked Sendable`** — use Swift actors for thread-safe shared state so the compiler can verify safety at compile time. Avoid `@unchecked Sendable` unless wrapping a type that is provably thread-safe but not marked by Apple (e.g., `ImageCache` uses `actor` instead of `@unchecked Sendable` around `NSCache`)
 - Use `TaskGroup` for parallel fetches where appropriate
 - Cancel tasks in ViewModel `deinit` or `.onDisappear`
 
@@ -110,21 +111,64 @@ View → ViewModel → UseCase → Repository → Service (Network)
 ├── moisesai-iphone-challenge/           (main app target)
 │   ├── App/
 │   │   ├── moisesai_iphone_challengeApp.swift
-│   │   └── ContentView.swift
+│   │   ├── ContentView.swift
+│   │   └── LaunchScreen (via Info.plist)
 │   ├── Core/
 │   │   ├── Network/
-│   │   ├── Data/
+│   │   │   ├── NetworkServiceProtocol.swift
+│   │   │   ├── URLSessionNetworkService.swift
+│   │   │   ├── Endpoint.swift
+│   │   │   ├── HTTPMethod.swift
+│   │   │   └── NetworkError.swift
+│   │   ├── Data/Models/
+│   │   │   ├── CachedSong.swift         (@Model, SwiftData)
+│   │   │   └── RecentlyPlayedSong.swift (@Model, SwiftData)
 │   │   ├── Domain/
+│   │   │   ├── Models/Song.swift
+│   │   │   └── DTOs/iTunesSearchResponse.swift
+│   │   ├── Repositories/
+│   │   │   ├── SongsRepositoryProtocol.swift
+│   │   │   └── SongsRepository.swift
 │   │   ├── Navigation/
-│   │   └── UI/Components/
-│   └── Modules/
-│       ├── Splash/
-│       ├── Home/
-│       ├── Player/
-│       ├── Album/
-│       └── MoreOptions/
+│   │   │   ├── Router.swift
+│   │   │   └── Route.swift
+│   │   └── UI/
+│   │       ├── DesignSystem.swift       (Typography, AppColors, Spacing, Sizing, Timing)
+│   │       ├── Components/
+│   │       │   ├── SongRowView.swift
+│   │       │   ├── ErrorView.swift
+│   │       │   ├── LoadingView.swift
+│   │       │   ├── CachedAsyncImage.swift
+│   │       │   ├── MarqueeText.swift
+│   │       │   └── SkeletonView.swift
+│   │       └── Extensions/
+│   │           └── Color+Hex.swift
+│   ├── Modules/
+│   │   ├── Splash/
+│   │   │   └── SplashView.swift
+│   │   ├── Home/
+│   │   │   ├── Views/HomeView.swift
+│   │   │   ├── ViewModels/HomeViewModel.swift
+│   │   │   └── UseCases/SearchSongsUseCase.swift, GetRecentlyPlayedUseCase.swift
+│   │   ├── Player/
+│   │   │   ├── Views/PlayerView.swift
+│   │   │   ├── ViewModels/PlayerViewModel.swift
+│   │   │   ├── UseCases/SaveRecentlyPlayedUseCase.swift
+│   │   │   └── Services/AudioPlayerService.swift
+│   │   ├── Album/
+│   │   │   ├── Views/AlbumView.swift
+│   │   │   ├── ViewModels/AlbumViewModel.swift
+│   │   │   └── UseCases/FetchAlbumSongsUseCase.swift
+│   │   └── MoreOptions/
+│   │       └── MoreOptionsSheet.swift
+│   └── Resources/
+│       ├── en.lproj/Localizable.strings
+│       └── pt-BR.lproj/Localizable.strings
 ├── moisesai-iphone-challengeTests/
-├── moisesai-iphone-challengeUITests/
+│   ├── Fixtures/SongFixture.swift
+│   ├── Mocks/
+│   ├── Unit/{Network,Repositories,UseCases,ViewModels}/
+│   └── Snapshot/{Components,Screens}/
 ├── docs/
 │   ├── specs/       (screen screenshots)
 │   ├── appicon/     (app icon source)

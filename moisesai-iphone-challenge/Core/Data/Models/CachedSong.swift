@@ -3,6 +3,8 @@ import SwiftData
 
 @Model
 final class CachedSong {
+    #Index<CachedSong>([\.trackId, \.searchTerm])
+
     var trackId: Int
     var trackName: String
     var artistName: String

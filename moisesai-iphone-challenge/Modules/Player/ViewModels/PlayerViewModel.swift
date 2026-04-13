@@ -115,7 +115,7 @@ final class PlayerViewModel {
             // Delay clearing isSeeking so the time observer doesn't
             // snap the slider back to the old position before AVPlayer catches up
             Task {
-                try? await Task.sleep(for: .milliseconds(300))
+                try? await Task.sleep(for: Timing.seekDebounce)
                 isSeeking = false
             }
         case .toggleRepeat:
@@ -123,6 +123,9 @@ final class PlayerViewModel {
         case .stop:
             audioPlayer.stop()
             state = .idle
+            currentTime = 0
+            duration = 0
+            isSeeking = false
         }
     }
 
@@ -148,7 +151,7 @@ final class PlayerViewModel {
             Task { @MainActor in
                 guard let self, !self.isSeeking else { return }
                 // Only update if change is meaningful to avoid micro-jitter
-                if abs(self.currentTime - time) > 0.1 {
+                if abs(self.currentTime - time) > Timing.timeObserverThreshold {
                     self.currentTime = time
                 }
                 let dur = self.audioPlayer.duration

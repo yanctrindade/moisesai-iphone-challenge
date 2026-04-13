@@ -10,20 +10,20 @@ struct PlayerView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            AppColors.background.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 Spacer()
                 artworkView
-                Spacer().frame(height: 32)
+                Spacer().frame(height: Spacing.xxxl)
                 songInfoView
-                Spacer().frame(height: 24)
+                Spacer().frame(height: Spacing.xxl)
                 timelineView
-                Spacer().frame(height: 24)
+                Spacer().frame(height: Spacing.xxl)
                 transportControls
                 Spacer()
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, Spacing.xxl)
         }
         .toolbarColorScheme(.dark, for: .navigationBar)
         .navigationBarTitleDisplayMode(.inline)
@@ -39,13 +39,13 @@ struct PlayerView: View {
                 } label: {
                     MarqueeText(
                         text: viewModel.song.collectionName,
-                        font: .system(size: 16, weight: .semibold),
+                        font: Typography.navBarTitle,
                         color: .white,
-                        maxWidth: 200
+                        maxWidth: Sizing.marqueeMaxWidth
                     )
                 }
                 .accessibilityLabel(viewModel.song.collectionName)
-                .accessibilityHint(NSLocalizedString("moreOptions.viewAlbum", comment: ""))
+                .accessibilityHint(Strings.viewAlbum)
             }
 
             ToolbarItem(placement: .topBarTrailing) {
@@ -55,9 +55,7 @@ struct PlayerView: View {
                     Image(systemName: "ellipsis")
                         .foregroundStyle(.white)
                 }
-                .accessibilityLabel(
-                    String(format: NSLocalizedString("accessibility.songRow.moreOptions", comment: ""), viewModel.song.trackName)
-                )
+                .accessibilityLabel(Strings.moreOptions(for: viewModel.song.trackName))
             }
         }
         .onAppear {
@@ -83,33 +81,18 @@ struct PlayerView: View {
     // MARK: - Artwork
 
     private var artworkView: some View {
-        AsyncImage(url: viewModel.song.artworkURLHighRes) { phase in
-            switch phase {
-            case .success(let image):
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .transition(.opacity.animation(.easeInOut(duration: 0.3)))
-            case .failure:
-                artworkPlaceholder
-            case .empty:
-                artworkPlaceholder
-                    .overlay { ProgressView().tint(.secondary) }
-            @unknown default:
-                artworkPlaceholder
-            }
+        CachedAsyncImage(url: viewModel.song.artworkURLHighRes) {
+            artworkPlaceholder
         }
         .id(viewModel.song.id)
-        .frame(width: 264, height: 264)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .frame(width: Sizing.playerArtwork, height: Sizing.playerArtwork)
+        .clipShape(RoundedRectangle(cornerRadius: Sizing.cornerRadiusLarge))
         .animation(.easeInOut(duration: 0.3), value: viewModel.song.id)
-        .accessibilityLabel(
-            String(format: NSLocalizedString("accessibility.player.albumArt", comment: ""), viewModel.song.collectionName)
-        )
+        .accessibilityLabel(Strings.albumArt(viewModel.song.collectionName))
     }
 
     private var artworkPlaceholder: some View {
-        RoundedRectangle(cornerRadius: 12)
+        RoundedRectangle(cornerRadius: Sizing.cornerRadiusLarge)
             .fill(Color(.tertiarySystemBackground))
             .overlay {
                 Image(systemName: "music.note")
@@ -124,13 +107,13 @@ struct PlayerView: View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text(viewModel.song.trackName)
-                    .font(.system(size: 32, weight: .semibold))
+                    .font(Typography.playerSongTitle)
                     .foregroundStyle(.white)
                     .lineLimit(1)
                     .id(viewModel.song.id)
 
                 Text(viewModel.song.artistName)
-                    .font(.system(size: 16, weight: .medium))
+                    .font(Typography.playerArtistName)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
@@ -142,11 +125,11 @@ struct PlayerView: View {
                 viewModel.send(.toggleRepeat)
             } label: {
                 Image(systemName: repeatIcon)
-                    .font(.title3)
+                    .font(Typography.repeatIcon)
                     .foregroundStyle(viewModel.repeatMode == .off ? Color.secondary : Color.white)
             }
             .animation(.easeInOut(duration: 0.2), value: viewModel.repeatMode)
-            .accessibilityLabel(NSLocalizedString("accessibility.player.repeat", comment: ""))
+            .accessibilityLabel(Strings.repeatMode)
             .accessibilityValue(repeatAccessibilityValue)
         }
     }
@@ -161,9 +144,9 @@ struct PlayerView: View {
 
     private var repeatAccessibilityValue: String {
         switch viewModel.repeatMode {
-        case .off: NSLocalizedString("accessibility.player.repeat.off", comment: "")
-        case .one: NSLocalizedString("accessibility.player.repeat.one", comment: "")
-        case .all: NSLocalizedString("accessibility.player.repeat.all", comment: "")
+        case .off: Strings.repeatOff
+        case .one: Strings.repeatOne
+        case .all: Strings.repeatAll
         }
     }
 
@@ -192,18 +175,18 @@ struct PlayerView: View {
                 }
             )
             .tint(.white)
-            .accessibilityLabel(NSLocalizedString("accessibility.player.seekSlider", comment: ""))
+            .accessibilityLabel(Strings.seekSlider)
 
             HStack {
                 Text(viewModel.currentTimeFormatted)
-                    .font(.caption)
+                    .font(Typography.timeLabel)
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
 
                 Spacer()
 
                 Text(viewModel.remainingTimeFormatted)
-                    .font(.caption)
+                    .font(Typography.timeLabel)
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
             }
@@ -213,42 +196,64 @@ struct PlayerView: View {
     // MARK: - Transport Controls
 
     private var transportControls: some View {
-        HStack(spacing: 40) {
+        HStack(spacing: Spacing.huge) {
             Button {
                 viewModel.send(.backward)
             } label: {
                 Image(systemName: "backward.fill")
-                    .font(.title2)
+                    .font(Typography.transportIcon)
                     .foregroundStyle(.white)
-                    .frame(width: 44, height: 44)
+                    .frame(width: Sizing.tapTarget, height: Sizing.tapTarget)
             }
-            .accessibilityLabel(NSLocalizedString("accessibility.player.backward", comment: ""))
+            .accessibilityLabel(Strings.backward)
 
             Button {
                 viewModel.send(.playPause)
             } label: {
                 Image(systemName: viewModel.state == .playing ? "pause.fill" : "play.fill")
-                    .font(.system(size: 32))
+                    .font(Typography.playPauseIcon)
                     .foregroundStyle(.white)
-                    .frame(width: 64, height: 64)
+                    .frame(width: Sizing.playPauseButton, height: Sizing.playPauseButton)
                     .background(Color(.tertiarySystemBackground))
                     .clipShape(Circle())
                     .contentTransition(.symbolEffect(.replace))
             }
-            .accessibilityLabel(NSLocalizedString("accessibility.player.playPause", comment: ""))
+            .accessibilityLabel(Strings.playPause)
 
             Button {
                 viewModel.send(.forward)
             } label: {
                 Image(systemName: "forward.fill")
-                    .font(.title2)
+                    .font(Typography.transportIcon)
                     .foregroundStyle(.white)
-                    .frame(width: 44, height: 44)
+                    .frame(width: Sizing.tapTarget, height: Sizing.tapTarget)
             }
-            .accessibilityLabel(NSLocalizedString("accessibility.player.forward", comment: ""))
+            .accessibilityLabel(Strings.forward)
         }
     }
 
+}
+
+extension PlayerView {
+    enum Strings {
+        static let viewAlbum = NSLocalizedString("moreOptions.viewAlbum", comment: "")
+        static let seekSlider = NSLocalizedString("accessibility.player.seekSlider", comment: "")
+        static let repeatMode = NSLocalizedString("accessibility.player.repeat", comment: "")
+        static let repeatOff = NSLocalizedString("accessibility.player.repeat.off", comment: "")
+        static let repeatOne = NSLocalizedString("accessibility.player.repeat.one", comment: "")
+        static let repeatAll = NSLocalizedString("accessibility.player.repeat.all", comment: "")
+        static let backward = NSLocalizedString("accessibility.player.backward", comment: "")
+        static let playPause = NSLocalizedString("accessibility.player.playPause", comment: "")
+        static let forward = NSLocalizedString("accessibility.player.forward", comment: "")
+
+        static func moreOptions(for song: String) -> String {
+            String(format: NSLocalizedString("accessibility.songRow.moreOptions", comment: ""), song)
+        }
+
+        static func albumArt(_ album: String) -> String {
+            String(format: NSLocalizedString("accessibility.player.albumArt", comment: ""), album)
+        }
+    }
 }
 
 #Preview {
@@ -270,7 +275,7 @@ struct PlayerView: View {
             viewModel: PlayerViewModel(
                 song: previewSong,
                 playlist: [previewSong],
-                audioPlayer: AudioPlayerService(),
+                audioPlayer: AudioPlayerService.shared,
                 saveRecentlyPlayedUseCase: SaveRecentlyPlayedUseCase(
                     repository: SongsRepository(networkService: URLSessionNetworkService(), modelContainer: container)
                 )

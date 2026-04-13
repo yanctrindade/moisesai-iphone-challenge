@@ -9,7 +9,7 @@ struct HomeView: View {
 
     var body: some View {
         contentView
-            .navigationTitle(NSLocalizedString("songs.title", comment: ""))
+            .navigationTitle(Strings.songsTitle)
             .navigationBarTitleDisplayMode(.large)
             .searchable(
                 text: Binding(
@@ -17,7 +17,7 @@ struct HomeView: View {
                     set: { viewModel.searchText = $0 }
                 ),
                 placement: .navigationBarDrawer(displayMode: .automatic),
-                prompt: NSLocalizedString("songs.search.placeholder", comment: "")
+                prompt: Strings.searchPlaceholder
             )
             .onAppear {
                 viewModel.send(.onAppear)
@@ -26,8 +26,17 @@ struct HomeView: View {
                 await viewModel.refresh()
             }
             .sheet(item: $selectedSongForOptions) { song in
-                Text(song.trackName)
-                    .presentationDetents([.medium])
+                MoreOptionsSheet(
+                    song: song,
+                    onViewAlbum: {
+                        selectedSongForOptions = nil
+                        router.push(.album(
+                            collectionId: song.collectionId,
+                            collectionName: song.collectionName,
+                            artworkURL: song.artworkURL
+                        ))
+                    }
+                )
             }
             .onSubmit(of: .search) {
                 if !viewModel.searchText.isEmpty {
@@ -48,7 +57,7 @@ struct HomeView: View {
                 emptySearchView
             }
         case .loading:
-            LoadingView(message: NSLocalizedString("general.loading", comment: ""))
+            SkeletonListView()
         case .loaded(let songs):
             songListView(songs)
         case .error(let message):
@@ -65,11 +74,11 @@ struct HomeView: View {
             } else {
                 ContentUnavailableView {
                     Label(
-                        NSLocalizedString("songs.empty.title", comment: ""),
+                        Strings.emptyTitle,
                         systemImage: "music.note"
                     )
                 } description: {
-                    Text(NSLocalizedString("songs.empty.message", comment: ""))
+                    Text(Strings.emptyMessage)
                 }
                 .padding(.top, 100)
             }
@@ -78,10 +87,10 @@ struct HomeView: View {
 
     private var recentlyPlayedSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(NSLocalizedString("songs.recentlyPlayed", comment: ""))
+            Text(Strings.recentlyPlayed)
                 .font(.headline)
                 .foregroundStyle(.primary)
-                .padding(.horizontal, 16)
+                .padding(.horizontal, Spacing.lg)
                 .accessibilityAddTraits(.isHeader)
 
             LazyVStack(spacing: 0) {
@@ -89,7 +98,7 @@ struct HomeView: View {
                     SongRowView(song: song, showMoreButton: true) {
                         selectedSongForOptions = song
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, Spacing.lg)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         router.push(.player(song: song, playlist: viewModel.recentlyPlayed))
@@ -97,7 +106,7 @@ struct HomeView: View {
                 }
             }
         }
-        .padding(.top, 16)
+        .padding(.top, Spacing.lg)
     }
 
     private var emptySearchView: some View {
@@ -111,7 +120,7 @@ struct HomeView: View {
                     SongRowView(song: song) {
                         selectedSongForOptions = song
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, Spacing.lg)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         router.push(.player(song: song, playlist: songs))
@@ -129,6 +138,16 @@ struct HomeView: View {
                 }
             }
         }
+    }
+}
+
+extension HomeView {
+    enum Strings {
+        static let songsTitle = NSLocalizedString("songs.title", comment: "")
+        static let searchPlaceholder = NSLocalizedString("songs.search.placeholder", comment: "")
+        static let emptyTitle = NSLocalizedString("songs.empty.title", comment: "")
+        static let emptyMessage = NSLocalizedString("songs.empty.message", comment: "")
+        static let recentlyPlayed = NSLocalizedString("songs.recentlyPlayed", comment: "")
     }
 }
 

@@ -10,57 +10,100 @@ struct MoreOptionsSheet: View {
     }
 
     var body: some View {
-        VStack(spacing: 12) {
-            Text(song.trackName)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(.white)
-                .lineLimit(1)
-                .padding(.top, 20)
-                .padding(.bottom, 4)
+        VStack(spacing: Spacing.lg) {
+            // Song info header
+            VStack(spacing: Spacing.xs) {
+                Text(song.trackName)
+                    .font(Typography.sheetTitle)
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
 
-            Button {
-                dismiss()
-                onViewAlbum()
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "music.note.list")
-                        .font(.system(size: 14))
-                        .foregroundStyle(.white)
-                    Text(NSLocalizedString("moreOptions.viewAlbum", comment: ""))
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(.white)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                Text(song.artistName)
+                    .font(Typography.songSubtitle)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
+            .padding(.top, Spacing.xxl)
 
-            ShareLink(item: shareText) {
-                HStack(spacing: 8) {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 14))
-                        .foregroundStyle(.white)
-                    Text(NSLocalizedString("moreOptions.share", comment: ""))
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(.white)
+            Divider()
+                .overlay(Color(.systemGray4))
+
+            // Options
+            VStack(spacing: 0) {
+                Button {
+                    dismiss()
+                    onViewAlbum()
+                } label: {
+                    HStack(spacing: Spacing.md) {
+                        Image(systemName: "rectangle.stack")
+                            .font(.body)
+                            .foregroundStyle(.white)
+                            .frame(width: 28, height: 28)
+
+                        Text(Strings.viewAlbum)
+                            .font(Typography.sheetButton)
+                            .foregroundStyle(.white)
+
+                        Spacer()
+                    }
+                    .padding(.vertical, Spacing.md)
+                    .padding(.horizontal, Spacing.xs)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                shareLink
             }
 
             Spacer()
         }
-        .padding(.horizontal, 20)
-        .presentationDetents([.height(250)])
+        .padding(.horizontal, Spacing.xl)
+        .presentationDetents([.height(220)])
         .presentationDragIndicator(.visible)
-        .presentationCornerRadius(16)
+        .presentationCornerRadius(Sizing.cornerRadiusSheet)
         .presentationBackground {
-            Color(hex: 0x262626, opacity: 0.8)
+            AppColors.sheetBackground
                 .background(.ultraThinMaterial)
         }
+    }
+
+    @ViewBuilder
+    private var shareLink: some View {
+        if let url = song.previewURL {
+            ShareLink(
+                item: url,
+                subject: Text(song.trackName),
+                message: Text(shareText)
+            ) {
+                shareLinkLabel
+            }
+        } else {
+            ShareLink(item: shareText) {
+                shareLinkLabel
+            }
+        }
+    }
+
+    private var shareLinkLabel: some View {
+        HStack(spacing: Spacing.md) {
+            Image(systemName: "square.and.arrow.up")
+                .font(.body)
+                .foregroundStyle(.white)
+                .frame(width: 28, height: 28)
+
+            Text(Strings.share)
+                .font(Typography.sheetButton)
+                .foregroundStyle(.white)
+
+            Spacer()
+        }
+        .padding(.vertical, Spacing.md)
+        .padding(.horizontal, Spacing.xs)
+    }
+}
+
+extension MoreOptionsSheet {
+    enum Strings {
+        static let viewAlbum = NSLocalizedString("moreOptions.viewAlbum", comment: "")
+        static let share = NSLocalizedString("moreOptions.share", comment: "")
     }
 }
 

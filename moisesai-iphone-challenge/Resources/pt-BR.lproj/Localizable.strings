@@ -40,6 +40,7 @@
 
 // MARK: - Network Errors
 "error.badURL" = "URL inválida";
+"error.invalidResponse" = "Resposta inválida do servidor";
 "error.requestFailed" = "Requisição falhou com código %d";
 "error.decodingFailed" = "Falha ao decodificar resposta";
 "error.noConnection" = "Sem conexão com a internet";
