@@ -4,6 +4,7 @@ import SwiftData
 struct ContentView: View {
     @State private var router = Router()
     @Environment(\.modelContext) private var modelContext
+    @Environment(NetworkMonitor.self) private var networkMonitor
 
     private let networkService = URLSessionNetworkService()
 
@@ -22,6 +23,10 @@ struct ContentView: View {
                 }
         }
         .environment(router)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            OfflineBanner(isVisible: !networkMonitor.isConnected)
+                .animation(.easeInOut(duration: 0.3), value: networkMonitor.isConnected)
+        }
     }
 
     private func makeHomeViewModel() -> HomeViewModel {

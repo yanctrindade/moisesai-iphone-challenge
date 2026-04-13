@@ -5,6 +5,9 @@
 "general.unknown" = "Desconhecido";
 "general.cancel" = "Cancelar";
 
+// MARK: - Offline
+"offline.banner.message" = "Você está offline. Tocando apenas músicas em cache.";
+
 // MARK: - Songs Screen
 "songs.title" = "Músicas";
 "songs.search.placeholder" = "Buscar músicas...";

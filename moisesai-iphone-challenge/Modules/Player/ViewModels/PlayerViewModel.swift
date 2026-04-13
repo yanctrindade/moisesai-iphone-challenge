@@ -49,6 +49,7 @@ final class PlayerViewModel {
     private let playlist: [Song]
     private let audioPlayer: AudioPlayerServiceProtocol
     private let saveRecentlyPlayedUseCase: SaveRecentlyPlayedUseCaseProtocol
+    private let audioCache: AudioCacheServiceProtocol
 
     private var currentIndex: Int
 
@@ -84,12 +85,14 @@ final class PlayerViewModel {
         song: Song,
         playlist: [Song],
         audioPlayer: AudioPlayerServiceProtocol,
-        saveRecentlyPlayedUseCase: SaveRecentlyPlayedUseCaseProtocol
+        saveRecentlyPlayedUseCase: SaveRecentlyPlayedUseCaseProtocol,
+        audioCache: AudioCacheServiceProtocol = AudioCacheService.shared
     ) {
         self.song = song
         self.playlist = playlist
         self.audioPlayer = audioPlayer
         self.saveRecentlyPlayedUseCase = saveRecentlyPlayedUseCase
+        self.audioCache = audioCache
         self.currentIndex = playlist.firstIndex(of: song) ?? 0
     }
 
@@ -137,12 +140,31 @@ final class PlayerViewModel {
             return
         }
 
-        audioPlayer.play(url: previewURL)
+        playWithCache(previewURL: previewURL, trackId: song.id)
         state = .playing
         setupObservers()
 
         Task {
             await saveRecentlyPlayedUseCase.execute(song)
+        }
+    }
+
+    private func playWithCache(previewURL: URL, trackId: Int) {
+        // If cached locally, play from disk
+        if let localURL = audioCache.localURL(for: trackId) {
+            audioPlayer.play(url: localURL)
+            return
+        }
+
+        // Otherwise stream and cache in background
+        audioPlayer.play(url: previewURL)
+
+        Task {
+            do {
+                _ = try await audioCache.cache(remoteURL: previewURL, trackId: trackId)
+            } catch {
+                logger.warning("Failed to cache audio for trackId \(trackId): \(error.localizedDescription)")
+            }
         }
     }
 
@@ -217,7 +239,7 @@ final class PlayerViewModel {
         currentTime = 0
         duration = 0
 
-        audioPlayer.play(url: previewURL)
+        playWithCache(previewURL: previewURL, trackId: nextSong.id)
         state = .playing
         setupObservers()
 

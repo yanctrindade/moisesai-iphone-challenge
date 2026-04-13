@@ -4,12 +4,20 @@ struct SongRowView: View {
     let song: Song
     let showMoreButton: Bool
     let artworkSize: CGFloat
+    let isDisabled: Bool
     var onMoreTapped: (() -> Void)?
 
-    init(song: Song, showMoreButton: Bool = true, artworkSize: CGFloat = Sizing.songRowArtwork, onMoreTapped: (() -> Void)? = nil) {
+    init(
+        song: Song,
+        showMoreButton: Bool = true,
+        artworkSize: CGFloat = Sizing.songRowArtwork,
+        isDisabled: Bool = false,
+        onMoreTapped: (() -> Void)? = nil
+    ) {
         self.song = song
         self.showMoreButton = showMoreButton
         self.artworkSize = artworkSize
+        self.isDisabled = isDisabled
         self.onMoreTapped = onMoreTapped
     }
 
@@ -53,6 +61,8 @@ struct SongRowView: View {
             }
         }
         .padding(.vertical, Spacing.xs)
+        .opacity(isDisabled ? 0.4 : 1.0)
+        .allowsHitTesting(!isDisabled)
         .contentShape(Rectangle())
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Strings.songRow(song.trackName, song.artistName))
