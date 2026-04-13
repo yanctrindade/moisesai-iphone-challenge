@@ -59,10 +59,12 @@ struct MarqueeText: View {
     private var geometryWidthBody: some View {
         GeometryReader { geo in
             let available = geo.size.width
-            let shouldScroll = textWidth > available
 
             Group {
-                if shouldScroll {
+                if available <= 0 {
+                    // No real width yet — show nothing (no scroll animation started)
+                    Color.clear
+                } else if textWidth > available {
                     scrollingContent(width: available)
                 } else {
                     Text(text)
@@ -71,9 +73,6 @@ struct MarqueeText: View {
                         .lineLimit(1)
                 }
             }
-            // Hide until GeometryReader has measured to avoid a flash
-            // while containerWidth transitions from 0 to the real value.
-            .opacity(available > 0 ? 1 : 0)
         }
     }
 

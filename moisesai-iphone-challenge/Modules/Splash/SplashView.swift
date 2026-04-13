@@ -21,17 +21,19 @@ struct SplashView: View {
         ZStack {
             // Matches Figma: linear-gradient(39.45deg, #000000 33.57%, #0086A0 205.11%)
             // CSS 0deg = up; 39.45deg points toward upper-right.
-            // So gradient line runs from bottom-left (0%) to upper-right (100%+).
-            // Black dominates from bottom-left through 33.57%; teal sits at 205% (way off-canvas),
-            // producing only a subtle teal bloom in the top-right corner.
+            // Derive UnitPoints from the exact angle (not .bottomLeading/.topTrailing,
+            // which would be a fixed 45°).
+            //   startPoint = (0.5 - sinθ/2, 0.5 + cosθ/2)  // bottom-left area
+            //   endPoint   = (0.5 + sinθ/2, 0.5 - cosθ/2)  // top-right area
+            // For θ = 39.45° that gives approximately (0.182, 0.886) → (0.818, 0.114).
             LinearGradient(
                 gradient: Gradient(stops: [
                     .init(color: AppColors.splashGradientStart, location: 0.0),
                     .init(color: AppColors.splashGradientStart, location: 0.3357),
                     .init(color: AppColors.splashGradientEnd, location: 2.0511)
                 ]),
-                startPoint: .bottomLeading,
-                endPoint: .topTrailing
+                startPoint: UnitPoint(x: 0.182, y: 0.886),
+                endPoint: UnitPoint(x: 0.818, y: 0.114)
             )
             .ignoresSafeArea()
 
