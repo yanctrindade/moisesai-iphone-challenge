@@ -9,13 +9,45 @@ struct MoreOptionsSheet: View {
         "\(song.trackName) - \(song.artistName)"
     }
 
+    @ViewBuilder
+    private var shareLink: some View {
+        if let url = song.previewURL {
+            ShareLink(
+                item: url,
+                subject: Text(song.trackName),
+                message: Text(shareText)
+            ) {
+                shareLinkLabel
+            }
+        } else {
+            ShareLink(item: shareText) {
+                shareLinkLabel
+            }
+        }
+    }
+
+    private var shareLinkLabel: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "square.and.arrow.up")
+                .font(.system(size: Sizing.sheetButtonIconSize))
+                .foregroundStyle(.white)
+            Text(L10n.share)
+                .font(Typography.sheetButton)
+                .foregroundStyle(.white)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, Sizing.sheetButtonPadding)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: Sizing.cornerRadiusLarge))
+    }
+
     var body: some View {
         VStack(spacing: 12) {
             Text(song.trackName)
-                .font(.system(size: 16, weight: .semibold))
+                .font(Typography.sheetTitle)
                 .foregroundStyle(.white)
                 .lineLimit(1)
-                .padding(.top, 20)
+                .padding(.top, Spacing.xl)
                 .padding(.bottom, 4)
 
             Button {
@@ -24,41 +56,28 @@ struct MoreOptionsSheet: View {
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "music.note.list")
-                        .font(.system(size: 14))
+                        .font(.system(size: Sizing.sheetButtonIconSize))
                         .foregroundStyle(.white)
-                    Text(NSLocalizedString("moreOptions.viewAlbum", comment: ""))
-                        .font(.system(size: 16, weight: .medium))
+                    Text(L10n.viewAlbum)
+                        .font(Typography.sheetButton)
                         .foregroundStyle(.white)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
+                .padding(.vertical, Sizing.sheetButtonPadding)
                 .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .clipShape(RoundedRectangle(cornerRadius: Sizing.cornerRadiusLarge))
             }
 
-            ShareLink(item: shareText) {
-                HStack(spacing: 8) {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 14))
-                        .foregroundStyle(.white)
-                    Text(NSLocalizedString("moreOptions.share", comment: ""))
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(.white)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
+            shareLink
 
             Spacer()
         }
-        .padding(.horizontal, 20)
-        .presentationDetents([.height(250)])
+        .padding(.horizontal, Spacing.xl)
+        .presentationDetents([.height(Sizing.moreOptionsSheetHeight)])
         .presentationDragIndicator(.visible)
-        .presentationCornerRadius(16)
+        .presentationCornerRadius(Sizing.cornerRadiusSheet)
         .presentationBackground {
-            Color(hex: 0x262626, opacity: 0.8)
+            AppColors.sheetBackground
                 .background(.ultraThinMaterial)
         }
     }

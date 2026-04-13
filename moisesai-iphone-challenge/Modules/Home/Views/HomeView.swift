@@ -9,7 +9,7 @@ struct HomeView: View {
 
     var body: some View {
         contentView
-            .navigationTitle(NSLocalizedString("songs.title", comment: ""))
+            .navigationTitle(L10n.songsTitle)
             .navigationBarTitleDisplayMode(.large)
             .searchable(
                 text: Binding(
@@ -17,7 +17,7 @@ struct HomeView: View {
                     set: { viewModel.searchText = $0 }
                 ),
                 placement: .navigationBarDrawer(displayMode: .automatic),
-                prompt: NSLocalizedString("songs.search.placeholder", comment: "")
+                prompt: L10n.searchPlaceholder
             )
             .onAppear {
                 viewModel.send(.onAppear)
@@ -65,11 +65,11 @@ struct HomeView: View {
             } else {
                 ContentUnavailableView {
                     Label(
-                        NSLocalizedString("songs.empty.title", comment: ""),
+                        L10n.emptyTitle,
                         systemImage: "music.note"
                     )
                 } description: {
-                    Text(NSLocalizedString("songs.empty.message", comment: ""))
+                    Text(L10n.emptyMessage)
                 }
                 .padding(.top, 100)
             }
@@ -78,10 +78,10 @@ struct HomeView: View {
 
     private var recentlyPlayedSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(NSLocalizedString("songs.recentlyPlayed", comment: ""))
+            Text(L10n.recentlyPlayed)
                 .font(.headline)
                 .foregroundStyle(.primary)
-                .padding(.horizontal, 16)
+                .padding(.horizontal, Spacing.lg)
                 .accessibilityAddTraits(.isHeader)
 
             LazyVStack(spacing: 0) {
@@ -89,7 +89,7 @@ struct HomeView: View {
                     SongRowView(song: song, showMoreButton: true) {
                         selectedSongForOptions = song
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, Spacing.lg)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         router.push(.player(song: song, playlist: viewModel.recentlyPlayed))
@@ -97,7 +97,7 @@ struct HomeView: View {
                 }
             }
         }
-        .padding(.top, 16)
+        .padding(.top, Spacing.lg)
     }
 
     private var emptySearchView: some View {
@@ -111,7 +111,7 @@ struct HomeView: View {
                     SongRowView(song: song) {
                         selectedSongForOptions = song
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, Spacing.lg)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         router.push(.player(song: song, playlist: songs))

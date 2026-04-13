@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct LoadingView: View {
-    var message: String = NSLocalizedString("general.loading", comment: "")
+    var message: String = L10n.loading
 
     var body: some View {
         VStack(spacing: 12) {

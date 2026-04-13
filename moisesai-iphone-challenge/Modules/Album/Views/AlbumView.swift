@@ -6,7 +6,7 @@ struct AlbumView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            AppColors.background.ignoresSafeArea()
 
             switch viewModel.state {
             case .loading:
@@ -35,7 +35,7 @@ struct AlbumView: View {
                 albumHeader
                 trackList(songs)
             }
-            .padding(.top, 16)
+            .padding(.top, Spacing.lg)
         }
     }
 
@@ -44,7 +44,7 @@ struct AlbumView: View {
     private var albumHeader: some View {
         VStack(spacing: 8) {
             CachedAsyncImage(url: viewModel.artworkURL) {
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: Sizing.cornerRadiusMedium)
                     .fill(Color(.tertiarySystemBackground))
                     .overlay {
                         Image(systemName: "music.note")
@@ -52,20 +52,20 @@ struct AlbumView: View {
                             .foregroundStyle(.secondary)
                     }
             }
-            .frame(width: 120, height: 120)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .frame(width: Sizing.albumHeaderArtwork, height: Sizing.albumHeaderArtwork)
+            .clipShape(RoundedRectangle(cornerRadius: Sizing.cornerRadiusMedium))
 
             Text(viewModel.collectionName)
-                .font(.system(size: 20, weight: .bold))
+                .font(Typography.albumTitle)
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
                 .accessibilityAddTraits(.isHeader)
 
             Text(viewModel.artistName)
-                .font(.system(size: 14, weight: .medium))
+                .font(Typography.albumArtist)
                 .foregroundStyle(.secondary)
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, Spacing.lg)
     }
 
     // MARK: - Track List
@@ -73,8 +73,8 @@ struct AlbumView: View {
     private func trackList(_ songs: [Song]) -> some View {
         LazyVStack(spacing: 0) {
             ForEach(songs) { song in
-                SongRowView(song: song, showMoreButton: false, artworkSize: 44)
-                    .padding(.horizontal, 16)
+                SongRowView(song: song, showMoreButton: false, artworkSize: Sizing.albumTrackArtwork)
+                    .padding(.horizontal, Spacing.lg)
                     .onTapGesture {
                         router.push(.player(song: song, playlist: songs))
                     }

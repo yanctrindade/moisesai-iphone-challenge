@@ -6,7 +6,7 @@ struct SongRowView: View {
     let artworkSize: CGFloat
     var onMoreTapped: (() -> Void)?
 
-    init(song: Song, showMoreButton: Bool = true, artworkSize: CGFloat = 50, onMoreTapped: (() -> Void)? = nil) {
+    init(song: Song, showMoreButton: Bool = true, artworkSize: CGFloat = Sizing.songRowArtwork, onMoreTapped: (() -> Void)? = nil) {
         self.song = song
         self.showMoreButton = showMoreButton
         self.artworkSize = artworkSize
@@ -16,7 +16,7 @@ struct SongRowView: View {
     var body: some View {
         HStack(spacing: 12) {
             CachedAsyncImage(url: song.artworkURL) {
-                RoundedRectangle(cornerRadius: 6)
+                RoundedRectangle(cornerRadius: Sizing.cornerRadiusSmall)
                     .fill(Color(.tertiarySystemBackground))
                     .overlay {
                         Image(systemName: "music.note")
@@ -24,16 +24,16 @@ struct SongRowView: View {
                     }
             }
             .frame(width: artworkSize, height: artworkSize)
-            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .clipShape(RoundedRectangle(cornerRadius: Sizing.cornerRadiusSmall))
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(song.trackName)
-                    .font(.system(size: 16, weight: .medium))
+                    .font(Typography.songTitle)
                     .foregroundStyle(.primary)
                     .lineLimit(1)
 
                 Text(song.artistName)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(Typography.songSubtitle)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
@@ -46,16 +46,16 @@ struct SongRowView: View {
                 } label: {
                     Image(systemName: "ellipsis")
                         .foregroundStyle(.secondary)
-                        .frame(width: 44, height: 44)
+                        .frame(width: Sizing.tapTarget, height: Sizing.tapTarget)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(String(format: NSLocalizedString("accessibility.songRow.moreOptions", comment: ""), song.trackName))
+                .accessibilityLabel(L10n.moreOptions(for: song.trackName))
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, Spacing.xs)
         .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(String(format: NSLocalizedString("accessibility.songRow", comment: ""), song.trackName, song.artistName))
+        .accessibilityLabel(L10n.songRow(song.trackName, song.artistName))
         .accessibilityAddTraits(.isButton)
     }
 }

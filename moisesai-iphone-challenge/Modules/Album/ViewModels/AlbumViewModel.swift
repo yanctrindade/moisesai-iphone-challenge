@@ -69,9 +69,11 @@ final class AlbumViewModel {
         switch action {
         case .onAppear:
             guard !hasLoaded, !isFetching else { return }
+            isFetching = true
             Task { await fetchSongs() }
         case .retry:
             guard !isFetching else { return }
+            isFetching = true
             Task { await fetchSongs() }
         }
     }
@@ -79,7 +81,6 @@ final class AlbumViewModel {
     // MARK: - Private
 
     private func fetchSongs() async {
-        isFetching = true
         state = .loading
 
         do {

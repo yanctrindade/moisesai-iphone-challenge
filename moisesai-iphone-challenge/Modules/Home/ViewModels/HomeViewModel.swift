@@ -29,7 +29,6 @@ final class HomeViewModel {
 
     private enum Constants {
         static let pageSize = 20
-        static let debounceDelay: Duration = .milliseconds(500)
     }
 
     // MARK: - Properties
@@ -114,7 +113,7 @@ final class HomeViewModel {
         }
 
         searchTask = Task {
-            try? await Task.sleep(for: Constants.debounceDelay)
+            try? await Task.sleep(for: Timing.searchDebounce)
             guard !Task.isCancelled else { return }
             await executeSearch(searchText)
         }

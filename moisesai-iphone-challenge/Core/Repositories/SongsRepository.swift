@@ -35,7 +35,7 @@ final class SongsRepository: SongsRepositoryProtocol {
 
         do {
             let descriptor = FetchDescriptor<CachedSong>(
-                predicate: #Predicate { $0.searchTerm.localizedStandardContains(lowercasedTerm) },
+                predicate: #Predicate { $0.searchTerm == lowercasedTerm },
                 sortBy: [SortDescriptor(\.cachedAt)]
             )
             let entities = try context.fetch(descriptor)
@@ -105,7 +105,7 @@ final class SongsRepository: SongsRepositoryProtocol {
 
         do {
             let descriptor = FetchDescriptor<CachedSong>(
-                predicate: #Predicate { trackIds.contains($0.trackId) && $0.searchTerm.localizedStandardContains(lowercasedTerm) }
+                predicate: #Predicate { trackIds.contains($0.trackId) && $0.searchTerm == lowercasedTerm }
             )
 
             let existing = try context.fetch(descriptor)
@@ -113,7 +113,7 @@ final class SongsRepository: SongsRepositoryProtocol {
 
             for song in songs {
                 if let entity = existingByTrackId[song.id] {
-                    entity.update(from: song, searchTerm: term)
+                    entity.update(from: song, searchTerm: term.lowercased())
                 } else {
                     let entity = CachedSong(
                         trackId: song.id,
@@ -126,7 +126,7 @@ final class SongsRepository: SongsRepositoryProtocol {
                         durationMillis: song.durationMillis,
                         genre: song.genre,
                         releaseDate: song.releaseDate,
-                        searchTerm: term
+                        searchTerm: term.lowercased()
                     )
                     context.insert(entity)
                 }
