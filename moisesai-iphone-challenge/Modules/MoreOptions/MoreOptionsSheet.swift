@@ -35,8 +35,10 @@ struct MoreOptionsSheet: View {
                     onViewAlbum()
                 } label: {
                     HStack(spacing: Spacing.md) {
-                        Image(systemName: "rectangle.stack")
-                            .font(.body)
+                        Image("ViewAlbumIcon")
+                            .renderingMode(.template)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
                             .foregroundStyle(.white)
                             .frame(width: 28, height: 28)
 
