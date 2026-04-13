@@ -91,3 +91,42 @@
 **What:** The app doesn't support opening specific songs or albums via URL schemes.
 
 **Why:** Not in requirements. The `Route` enum and `Router` pattern are ready for deep linking if needed — just parse a URL into a `Route` and push it.
+
+## Future Work: API Search Improvements
+
+Based on [Apple's iTunes Search API documentation](https://developer.apple.com/library/archive/documentation/AudioVideo/Conceptual/iTuneSearchAPI/Searching.html), the following improvements could enhance search quality and reliability:
+
+### Locale-Aware Search (`country` parameter)
+**Current:** We don't send the `country` parameter — defaults to `US`.
+
+**Improvement:** Use `Locale.current.region?.identifier` to automatically send the user's country code. This returns results from the local iTunes Store, showing regionally relevant content and pricing.
+
+### Rate Limiting Protection
+**Current:** No client-side throttling. Rapid searches could hit the ~20 calls/minute API limit.
+
+**Improvement:** Implement a request queue with token bucket or sliding window rate limiter in `URLSessionNetworkService`. When the limit is approached, queue requests instead of dropping them. The 500ms search debounce helps but doesn't protect against pagination + search + album lookup happening simultaneously.
+
+### Explicit Content Filter (`explicit` parameter)
+**Current:** Defaults to `Yes` (explicit content included).
+
+**Improvement:** Add a user setting to toggle explicit content filtering. Pass `explicit=No` in the `Endpoint` when the user opts out. Useful for family-friendly usage.
+
+### Language Support (`lang` parameter)
+**Current:** Not sent — defaults to `en_us`.
+
+**Improvement:** Map the device's preferred language to the supported values (`en_us`, `ja_jp`). Limited impact since only English and Japanese are supported by the API.
+
+### URL Encoding Validation
+**Current:** `URLComponents` handles encoding automatically via `URLQueryItem`.
+
+**Note:** Apple's docs emphasize encoding URLs correctly. Our implementation uses `URLQueryItem` which handles percent-encoding automatically. Spaces in search terms are properly encoded. No action needed, but worth verifying edge cases (special characters, emoji, CJK text).
+
+### Response Caching Headers
+**Current:** SwiftData provides our own cache layer. `URLSession` also has built-in HTTP cache via `URLCache`.
+
+**Improvement:** Could configure `URLSessionConfiguration.urlCache` with a custom size to leverage HTTP-level caching as a second layer before SwiftData. This would reduce network calls for repeated identical requests within a session without hitting our SwiftData persistence layer.
+
+### Search Attributes
+**Current:** Generic search across all attributes.
+
+**Improvement:** The API supports an `attribute` parameter to narrow search scope (e.g., `songTerm`, `artistTerm`, `albumTerm`). Could add search filters in the UI to let users search specifically by song name, artist, or album.
