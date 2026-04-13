@@ -30,7 +30,7 @@ struct CachedAsyncImage<Placeholder: View>: View {
     private func loadImage() async {
         guard let url, !isLoading else { return }
 
-        if let cached = ImageCache.shared.get(for: url) {
+        if let cached = await ImageCache.shared.get(for: url) {
             image = cached
             return
         }
@@ -41,7 +41,7 @@ struct CachedAsyncImage<Placeholder: View>: View {
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             guard let uiImage = UIImage(data: data) else { return }
-            ImageCache.shared.set(uiImage, for: url)
+            await ImageCache.shared.set(uiImage, for: url)
             image = uiImage
         } catch {
             // Silently fail — placeholder stays visible
@@ -49,12 +49,12 @@ struct CachedAsyncImage<Placeholder: View>: View {
     }
 }
 
-final class ImageCache: @unchecked Sendable {
+actor ImageCache {
     static let shared = ImageCache()
 
     private let cache = NSCache<NSURL, UIImage>()
 
-    private init() {
+    init() {
         cache.countLimit = 100
         cache.totalCostLimit = 50 * 1024 * 1024 // 50MB
     }
