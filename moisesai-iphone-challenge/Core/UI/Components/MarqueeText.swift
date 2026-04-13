@@ -8,7 +8,6 @@ struct MarqueeText: View {
     let uiFont: UIFont
 
     @State private var offset: CGFloat = 0
-    @State private var containerWidth: CGFloat = 0
 
     private let spacing: CGFloat = 40
     private let speed: Double = 30
@@ -32,15 +31,34 @@ struct MarqueeText: View {
         return (text as NSString).size(withAttributes: attributes).width
     }
 
-    /// The width we should compare against: if a finite maxWidth was provided use it,
-    /// otherwise fall back to the measured container width from GeometryReader.
-    private var effectiveWidth: CGFloat {
-        maxWidth.isFinite ? maxWidth : containerWidth
+    var body: some View {
+        if maxWidth.isFinite {
+            // Simple path when a concrete maxWidth was provided (e.g., toolbar title).
+            // GeometryReader inside a toolbar doesn't always report a usable size,
+            // so we compare directly against the given maxWidth.
+            fixedWidthBody
+        } else {
+            // Dynamic container width (e.g., full-width player song title).
+            geometryWidthBody
+        }
     }
 
-    var body: some View {
+    @ViewBuilder
+    private var fixedWidthBody: some View {
+        let shouldScroll = textWidth > maxWidth
+        if shouldScroll {
+            scrollingContent(width: maxWidth)
+        } else {
+            Text(text)
+                .font(font)
+                .foregroundStyle(color)
+                .lineLimit(1)
+        }
+    }
+
+    private var geometryWidthBody: some View {
         GeometryReader { geo in
-            let available = min(geo.size.width, maxWidth.isFinite ? maxWidth : geo.size.width)
+            let available = geo.size.width
             let shouldScroll = textWidth > available
 
             Group {
@@ -55,9 +73,7 @@ struct MarqueeText: View {
             }
             // Hide until GeometryReader has measured to avoid a flash
             // while containerWidth transitions from 0 to the real value.
-            .opacity(geo.size.width > 0 ? 1 : 0)
-            .onAppear { containerWidth = geo.size.width }
-            .onChange(of: geo.size.width) { _, new in containerWidth = new }
+            .opacity(available > 0 ? 1 : 0)
         }
     }
 
