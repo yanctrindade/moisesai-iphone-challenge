@@ -21,6 +21,8 @@
 
 // MARK: - Album Screen
 "album.tracks" = "Tracks";
+"album.empty.title" = "No Tracks";
+"album.empty.message" = "This album doesn't have any tracks available.";
 
 // MARK: - More Options
 "moreOptions.viewAlbum" = "View Album";

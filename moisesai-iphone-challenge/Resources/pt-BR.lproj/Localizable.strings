@@ -21,6 +21,8 @@
 
 // MARK: - Album Screen
 "album.tracks" = "Faixas";
+"album.empty.title" = "Sem Faixas";
+"album.empty.message" = "Este álbum não possui faixas disponíveis.";
 
 // MARK: - More Options
 "moreOptions.viewAlbum" = "Ver Álbum";
