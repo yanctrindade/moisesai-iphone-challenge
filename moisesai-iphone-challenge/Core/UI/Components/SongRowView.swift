@@ -3,11 +3,13 @@ import SwiftUI
 struct SongRowView: View {
     let song: Song
     let showMoreButton: Bool
+    let artworkSize: CGFloat
     var onMoreTapped: (() -> Void)?
 
-    init(song: Song, showMoreButton: Bool = true, onMoreTapped: (() -> Void)? = nil) {
+    init(song: Song, showMoreButton: Bool = true, artworkSize: CGFloat = 50, onMoreTapped: (() -> Void)? = nil) {
         self.song = song
         self.showMoreButton = showMoreButton
+        self.artworkSize = artworkSize
         self.onMoreTapped = onMoreTapped
     }
 
@@ -25,7 +27,7 @@ struct SongRowView: View {
                             .foregroundStyle(.secondary)
                     }
             }
-            .frame(width: 50, height: 50)
+            .frame(width: artworkSize, height: artworkSize)
             .clipShape(RoundedRectangle(cornerRadius: 6))
 
             VStack(alignment: .leading, spacing: 2) {

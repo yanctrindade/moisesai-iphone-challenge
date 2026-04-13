@@ -82,52 +82,13 @@ struct AlbumView: View {
     private func trackList(_ songs: [Song]) -> some View {
         LazyVStack(spacing: 0) {
             ForEach(songs) { song in
-                trackRow(song, playlist: songs)
-            }
-        }
-    }
-
-    private func trackRow(_ song: Song, playlist: [Song]) -> some View {
-        HStack(spacing: 12) {
-            AsyncImage(url: song.artworkURL) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(Color(.tertiarySystemBackground))
-                    .overlay {
-                        Image(systemName: "music.note")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                SongRowView(song: song, showMoreButton: false, artworkSize: 44)
+                    .padding(.horizontal, 16)
+                    .onTapGesture {
+                        router.push(.player(song: song, playlist: songs))
                     }
             }
-            .frame(width: 44, height: 44)
-            .clipShape(RoundedRectangle(cornerRadius: 6))
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(song.trackName)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-
-                Text(song.artistName)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-
-            Spacer()
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 6)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            router.push(.player(song: song, playlist: playlist))
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(String(format: NSLocalizedString("accessibility.songRow", comment: ""), song.trackName, song.artistName))
-        .accessibilityAddTraits(.isButton)
     }
 }
 

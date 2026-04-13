@@ -31,6 +31,7 @@ final class AlbumViewModel {
     private let collectionId: Int
     private let fetchAlbumSongsUseCase: FetchAlbumSongsUseCaseProtocol
     private var hasLoaded = false
+    private var isFetching = false
 
     // MARK: - Computed
 
@@ -67,7 +68,7 @@ final class AlbumViewModel {
     func send(_ action: Action) {
         switch action {
         case .onAppear:
-            guard !hasLoaded else { return }
+            guard !hasLoaded, !isFetching else { return }
             Task { await fetchSongs() }
         case .retry:
             Task { await fetchSongs() }
@@ -77,6 +78,7 @@ final class AlbumViewModel {
     // MARK: - Private
 
     private func fetchSongs() async {
+        isFetching = true
         state = .loading
 
         do {
@@ -87,5 +89,6 @@ final class AlbumViewModel {
             logger.error("Failed to fetch album songs: \(error.localizedDescription)")
             state = .error(error.localizedDescription)
         }
+        isFetching = false
     }
 }
