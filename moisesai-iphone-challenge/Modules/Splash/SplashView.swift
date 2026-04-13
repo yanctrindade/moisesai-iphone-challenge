@@ -1,12 +1,15 @@
 import SwiftUI
+import SwiftData
 
 struct SplashView: View {
+    let deps: AppDependencies
+
     @State private var isActive = false
     @State private var iconOpacity: Double = 0
 
     var body: some View {
         if isActive {
-            ContentView()
+            ContentView(deps: deps)
                 .transition(.opacity)
         } else {
             splashContent
@@ -19,7 +22,7 @@ struct SplashView: View {
             LinearGradient(
                 gradient: Gradient(stops: [
                     .init(color: AppColors.splashGradientStart, location: 0.0),
-                    .init(color: AppColors.splashGradientStart, location: 0.8),
+                    .init(color: AppColors.splashGradientStart, location: 0.5),
                     .init(color: AppColors.splashGradientEnd, location: 1.0)
                 ]),
                 startPoint: UnitPoint(x: 0.18, y: 0.0),
@@ -51,6 +54,14 @@ struct SplashView: View {
 }
 
 #Preview {
-    SplashView()
+    let container = try! ModelContainer(
+        for: CachedSong.self, RecentlyPlayedSong.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
+    let monitor = NetworkMonitor()
+    let deps = AppDependencies.live(modelContainer: container, networkMonitor: monitor)
+
+    SplashView(deps: deps)
+        .environment(monitor)
         .preferredColorScheme(.dark)
 }

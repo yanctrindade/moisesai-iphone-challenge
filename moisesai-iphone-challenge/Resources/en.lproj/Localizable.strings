@@ -5,6 +5,10 @@
 "general.unknown" = "Unknown";
 "general.cancel" = "Cancel";
 
+// MARK: - Offline
+"offline.banner.message" = "You're offline. Playing cached songs only.";
+"general.dismiss" = "Dismiss";
+
 // MARK: - Songs Screen
 "songs.title" = "Songs";
 "songs.search.placeholder" = "Search songs...";
@@ -17,6 +21,8 @@
 
 // MARK: - Album Screen
 "album.tracks" = "Tracks";
+"album.empty.title" = "No Tracks";
+"album.empty.message" = "This album doesn't have any tracks available.";
 
 // MARK: - More Options
 "moreOptions.viewAlbum" = "View Album";

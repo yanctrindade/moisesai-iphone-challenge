@@ -1,4 +1,5 @@
 import Testing
+import Foundation
 @testable import moisesai_iphone_challenge
 
 @Suite("PlayerViewModel Tests")
@@ -7,7 +8,9 @@ struct PlayerViewModelTests {
 
     private func makeSUT(
         song: Song? = nil,
-        playlist: [Song]? = nil
+        playlist: [Song]? = nil,
+        audioCache: MockAudioCacheService = MockAudioCacheService(),
+        networkMonitor: MockNetworkMonitor? = nil
     ) -> (PlayerViewModel, MockAudioPlayerService, MockSaveRecentlyPlayedUseCase) {
         let audioPlayer = MockAudioPlayerService()
         let saveUseCase = MockSaveRecentlyPlayedUseCase()
@@ -18,7 +21,9 @@ struct PlayerViewModelTests {
             song: currentSong,
             playlist: songs,
             audioPlayer: audioPlayer,
-            saveRecentlyPlayedUseCase: saveUseCase
+            saveRecentlyPlayedUseCase: saveUseCase,
+            audioCache: audioCache,
+            networkMonitor: networkMonitor
         )
         return (viewModel, audioPlayer, saveUseCase)
     }
@@ -200,5 +205,93 @@ struct PlayerViewModelTests {
     @Test func test_progress_whenDurationZero_returnsZero() {
         let (sut, _, _) = makeSUT()
         #expect(sut.progress == 0)
+    }
+
+    // MARK: - Offline / Cache
+
+    @Test func test_onAppear_whenCached_playsFromLocalURL() async throws {
+        let song = SongFixture.make(id: 42)
+        let cache = MockAudioCacheService()
+        cache.cachedTrackIds = [42]
+
+        let (sut, audioPlayer, _) = makeSUT(song: song, playlist: [song], audioCache: cache)
+
+        sut.send(.onAppear)
+        try await Task.sleep(for: .milliseconds(50))
+
+        #expect(audioPlayer.playCallCount == 1)
+        #expect(audioPlayer.lastPlayURL?.isFileURL == true)
+        if case .playing = sut.state {} else {
+            Issue.record("Expected .playing state")
+        }
+        #expect(cache.cacheCallCount == 0)
+    }
+
+    @Test func test_onAppear_whenOnlineAndUncached_streamsAndCaches() async throws {
+        let song = SongFixture.make(id: 99)
+        let cache = MockAudioCacheService()
+        let monitor = MockNetworkMonitor()
+        monitor.isConnected = true
+
+        let (sut, audioPlayer, _) = makeSUT(
+            song: song, playlist: [song], audioCache: cache, networkMonitor: monitor
+        )
+
+        sut.send(.onAppear)
+        try await Task.sleep(for: .milliseconds(50))
+
+        #expect(audioPlayer.playCallCount == 1)
+        #expect(audioPlayer.lastPlayURL?.isFileURL == false) // remote URL
+        if case .playing = sut.state {} else {
+            Issue.record("Expected .playing state")
+        }
+        #expect(cache.cacheCallCount == 1)
+        #expect(cache.cacheLastTrackId == 99)
+    }
+
+    @Test func test_onAppear_whenOfflineAndUncached_setsOfflineUnavailable() async throws {
+        let song = SongFixture.make(id: 77)
+        let cache = MockAudioCacheService()
+        let monitor = MockNetworkMonitor()
+        monitor.isConnected = false
+
+        let (sut, audioPlayer, _) = makeSUT(
+            song: song, playlist: [song], audioCache: cache, networkMonitor: monitor
+        )
+
+        sut.send(.onAppear)
+        try await Task.sleep(for: .milliseconds(50))
+
+        #expect(audioPlayer.playCallCount == 0)
+        #expect(sut.state == .offlineUnavailable)
+        #expect(cache.cacheCallCount == 0)
+    }
+
+    @Test func test_onAppear_whenNoPreviewURL_setsNoPreviewAvailable() async throws {
+        let song = SongFixture.make(id: 1, previewURL: nil)
+        let (sut, audioPlayer, _) = makeSUT(song: song, playlist: [song])
+
+        sut.send(.onAppear)
+        try await Task.sleep(for: .milliseconds(50))
+
+        #expect(audioPlayer.playCallCount == 0)
+        #expect(sut.state == .noPreviewAvailable)
+    }
+
+    @Test func test_togglePlayPause_whenOfflineUnavailable_isNoOp() async throws {
+        let song = SongFixture.make(id: 77)
+        let monitor = MockNetworkMonitor()
+        monitor.isConnected = false
+
+        let (sut, audioPlayer, _) = makeSUT(
+            song: song, playlist: [song], networkMonitor: monitor
+        )
+
+        sut.send(.onAppear)
+        try await Task.sleep(for: .milliseconds(50))
+        sut.send(.playPause)
+
+        #expect(audioPlayer.pauseCallCount == 0)
+        #expect(audioPlayer.resumeCallCount == 0)
     }
 }

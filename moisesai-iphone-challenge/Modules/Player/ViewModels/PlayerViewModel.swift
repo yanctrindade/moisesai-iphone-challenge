@@ -9,10 +9,14 @@ final class PlayerViewModel {
 
     // MARK: - ViewState
 
-    enum ViewState {
+    enum ViewState: Equatable {
         case idle
         case playing
         case paused
+        /// No cached audio and no network connection.
+        case offlineUnavailable
+        /// Song has no preview URL from the API (distinct from offline).
+        case noPreviewAvailable
     }
 
     // MARK: - Action
@@ -49,6 +53,8 @@ final class PlayerViewModel {
     private let playlist: [Song]
     private let audioPlayer: AudioPlayerServiceProtocol
     private let saveRecentlyPlayedUseCase: SaveRecentlyPlayedUseCaseProtocol
+    private let audioCache: AudioCacheServiceProtocol
+    private let networkMonitor: NetworkMonitorProtocol?
 
     private var currentIndex: Int
 
@@ -84,12 +90,16 @@ final class PlayerViewModel {
         song: Song,
         playlist: [Song],
         audioPlayer: AudioPlayerServiceProtocol,
-        saveRecentlyPlayedUseCase: SaveRecentlyPlayedUseCaseProtocol
+        saveRecentlyPlayedUseCase: SaveRecentlyPlayedUseCaseProtocol,
+        audioCache: AudioCacheServiceProtocol = AudioCacheService.shared,
+        networkMonitor: NetworkMonitorProtocol? = nil
     ) {
         self.song = song
         self.playlist = playlist
         self.audioPlayer = audioPlayer
         self.saveRecentlyPlayedUseCase = saveRecentlyPlayedUseCase
+        self.audioCache = audioCache
+        self.networkMonitor = networkMonitor
         self.currentIndex = playlist.firstIndex(of: song) ?? 0
     }
 
@@ -134,16 +144,50 @@ final class PlayerViewModel {
     private func startPlayback() {
         guard let previewURL = song.previewURL else {
             logger.warning("No preview URL for song: \(self.song.trackName)")
+            state = .noPreviewAvailable
             return
         }
 
-        audioPlayer.play(url: previewURL)
+        guard playWithCache(previewURL: previewURL, trackId: song.id) else {
+            state = .offlineUnavailable
+            return
+        }
+
         state = .playing
         setupObservers()
 
         Task {
             await saveRecentlyPlayedUseCase.execute(song)
         }
+    }
+
+    /// Returns true if playback started successfully, false if offline and no cache available.
+    @discardableResult
+    private func playWithCache(previewURL: URL, trackId: Int) -> Bool {
+        // If cached locally, always play from disk
+        if let localURL = audioCache.localURL(for: trackId) {
+            audioPlayer.play(url: localURL)
+            return true
+        }
+
+        // No cache — only stream if we have network
+        let isOffline = networkMonitor?.isConnected == false
+        if isOffline {
+            logger.warning("Cannot play trackId \(trackId): offline and no cache")
+            return false
+        }
+
+        audioPlayer.play(url: previewURL)
+
+        Task {
+            do {
+                _ = try await audioCache.cache(remoteURL: previewURL, trackId: trackId)
+            } catch {
+                logger.warning("Failed to cache audio for trackId \(trackId): \(error.localizedDescription)")
+            }
+        }
+
+        return true
     }
 
     private func setupObservers() {
@@ -170,6 +214,7 @@ final class PlayerViewModel {
     }
 
     private func togglePlayPause() {
+        guard state != .offlineUnavailable, state != .noPreviewAvailable else { return }
         if audioPlayer.isPlaying {
             audioPlayer.pause()
             state = .paused
@@ -212,12 +257,19 @@ final class PlayerViewModel {
         let nextSong = playlist[index]
         song = nextSong
 
-        guard let previewURL = nextSong.previewURL else { return }
+        guard let previewURL = nextSong.previewURL else {
+            state = .noPreviewAvailable
+            return
+        }
 
         currentTime = 0
         duration = 0
 
-        audioPlayer.play(url: previewURL)
+        guard playWithCache(previewURL: previewURL, trackId: nextSong.id) else {
+            state = .offlineUnavailable
+            return
+        }
+
         state = .playing
         setupObservers()
 

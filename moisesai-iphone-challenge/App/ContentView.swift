@@ -2,66 +2,79 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
+    let deps: AppDependencies
+
     @State private var router = Router()
-    @Environment(\.modelContext) private var modelContext
+    @State private var homeViewModel: HomeViewModel
 
-    private let networkService = URLSessionNetworkService()
-
-    var body: some View {
-        NavigationStack(path: $router.path) {
-            HomeView(viewModel: makeHomeViewModel())
-                .navigationDestination(for: Route.self) { route in
-                    switch route {
-                    case .home:
-                        HomeView(viewModel: makeHomeViewModel())
-                    case .player(let song, let playlist):
-                        makePlayerView(song: song, playlist: playlist)
-                    case .album(let collectionId, let collectionName, let artworkURL):
-                        makeAlbumView(collectionId: collectionId, collectionName: collectionName, artworkURL: artworkURL)
-                    }
-                }
-        }
-        .environment(router)
-    }
-
-    private func makeHomeViewModel() -> HomeViewModel {
-        let repository = SongsRepository(networkService: networkService, modelContainer: modelContext.container)
-        let searchUseCase = SearchSongsUseCase(repository: repository)
-        let recentlyPlayedUseCase = GetRecentlyPlayedUseCase(repository: repository)
-        return HomeViewModel(
-            searchSongsUseCase: searchUseCase,
-            getRecentlyPlayedUseCase: recentlyPlayedUseCase
+    init(deps: AppDependencies) {
+        self.deps = deps
+        let repository = deps.songsRepository
+        _homeViewModel = State(
+            initialValue: HomeViewModel(
+                searchSongsUseCase: SearchSongsUseCase(repository: repository),
+                getRecentlyPlayedUseCase: GetRecentlyPlayedUseCase(repository: repository)
+            )
         )
     }
 
+    var body: some View {
+        NavigationStack(path: $router.path) {
+            HomeView(viewModel: homeViewModel)
+                .navigationDestination(for: Route.self) { route in
+                    destinationView(for: route)
+                }
+        }
+        .environment(router)
+        .offlineBanner()
+    }
+
+    @ViewBuilder
+    private func destinationView(for route: Route) -> some View {
+        switch route {
+        case .home:
+            HomeView(viewModel: homeViewModel)
+        case .player(let song, let playlist):
+            makePlayerView(song: song, playlist: playlist)
+        case .album(let collectionId, let collectionName, let artworkURL):
+            makeAlbumView(collectionId: collectionId, collectionName: collectionName, artworkURL: artworkURL)
+        }
+    }
+
     private func makeAlbumView(collectionId: Int, collectionName: String, artworkURL: URL?) -> AlbumView {
-        let useCase = FetchAlbumSongsUseCase(networkService: networkService)
-        return AlbumView(
+        AlbumView(
             viewModel: AlbumViewModel(
                 collectionId: collectionId,
                 collectionName: collectionName,
                 artworkURL: artworkURL,
-                fetchAlbumSongsUseCase: useCase
+                fetchAlbumSongsUseCase: FetchAlbumSongsUseCase(networkService: deps.networkService)
             )
         )
     }
 
     private func makePlayerView(song: Song, playlist: [Song]) -> PlayerView {
-        let repository = SongsRepository(networkService: networkService, modelContainer: modelContext.container)
-        let saveRecentlyPlayedUseCase = SaveRecentlyPlayedUseCase(repository: repository)
-        return PlayerView(
+        PlayerView(
             viewModel: PlayerViewModel(
                 song: song,
                 playlist: playlist,
-                audioPlayer: AudioPlayerService.shared,
-                saveRecentlyPlayedUseCase: saveRecentlyPlayedUseCase
+                audioPlayer: deps.audioPlayer,
+                saveRecentlyPlayedUseCase: SaveRecentlyPlayedUseCase(repository: deps.songsRepository),
+                audioCache: deps.audioCache,
+                networkMonitor: deps.networkMonitor
             )
         )
     }
 }
 
 #Preview {
-    ContentView()
-        .modelContainer(for: [CachedSong.self, RecentlyPlayedSong.self], inMemory: true)
+    let container = try! ModelContainer(
+        for: CachedSong.self, RecentlyPlayedSong.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
+    let monitor = NetworkMonitor()
+    let deps = AppDependencies.live(modelContainer: container, networkMonitor: monitor)
+
+    ContentView(deps: deps)
+        .environment(monitor as NetworkMonitor)
         .preferredColorScheme(.dark)
 }

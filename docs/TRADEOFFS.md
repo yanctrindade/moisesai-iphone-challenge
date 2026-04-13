@@ -102,6 +102,38 @@
 
 **Why:** Not in requirements. The `Route` enum and `Router` pattern are ready for deep linking if needed — just parse a URL into a `Route` and push it.
 
+## Testing Offline Mode
+
+**Don't use simulator airplane mode** — it can cause certificate/trust issues because the simulator shares the Mac's network stack and toggling airplane mode at that level interferes with TLS validation.
+
+**Recommended approaches:**
+
+1. **Network Link Conditioner** — Simulator > Features > Network Link Conditioner. Use "100% Loss" profile.
+
+2. **Disable Wi-Fi on the host Mac** — cleanest way to simulate real offline state without certificate issues.
+
+3. **Mock `NetworkMonitorProtocol` in tests** — inject a mock that returns `isConnected: false`.
+
+## Future Work: Background Audio & Lock Screen Controls
+
+**Why deferred:** Significant scope (2 new services, Info.plist config, iOS entitlements, lock screen testing) that would expand the challenge timeline. The current app stops playback when leaving the player screen — a deliberate choice to avoid partial background audio support.
+
+### Architecture Sketch
+
+1. **Info.plist** — Add `UIBackgroundModes: [audio]` to allow the app to continue playback when backgrounded.
+
+2. **`NowPlayingInfoService`** — Wraps `MPNowPlayingInfoCenter.default()`. Provides `update(song:currentTime:duration:isPlaying:)` to populate lock screen with title, artist, album, artwork (fetched via `CachedAsyncImage`), duration. Clears info on stop.
+
+3. **`RemoteCommandCenterService`** — Wraps `MPRemoteCommandCenter.shared()`. Configures play/pause, next/previous, and seek commands from lock screen/Control Center/AirPods. Closures call back into `PlayerViewModel`.
+
+4. **`AudioPlayerService` changes** — `AVAudioSession` is already configured with `.playback` category; need to call `setActive(true)` when playback starts and ensure session remains active when app backgrounds.
+
+5. **`PlayerView` change** — Remove `.onDisappear { send(.stop) }` so audio continues when user navigates away. Only stop when user explicitly pauses or playback ends.
+
+6. **`PlayerViewModel` integration** — On song change, update NowPlayingInfo + RemoteCommand. Periodic time observer pushes updates to NowPlayingInfo (for scrubber sync).
+
+Follows the same Provider-style pattern used elsewhere — protocols first, concrete implementations injected via DI.
+
 ## Future Work: API Search Improvements
 
 Based on [Apple's iTunes Search API documentation](https://developer.apple.com/library/archive/documentation/AudioVideo/Conceptual/iTuneSearchAPI/Searching.html), the following improvements could enhance search quality and reliability:

@@ -11,6 +11,8 @@ struct AlbumView: View {
             switch viewModel.state {
             case .loading:
                 SkeletonListView(count: 6)
+            case .loaded(let songs) where songs.isEmpty:
+                emptyStateView
             case .loaded(let songs):
                 albumContent(songs)
             case .error(let message):
@@ -25,6 +27,21 @@ struct AlbumView: View {
         .onAppear {
             viewModel.send(.onAppear)
         }
+    }
+
+    // MARK: - Empty State
+
+    private var emptyStateView: some View {
+        VStack(spacing: Spacing.lg) {
+            albumHeader
+
+            ContentUnavailableView {
+                Label(Strings.emptyTitle, systemImage: "music.note.list")
+            } description: {
+                Text(Strings.emptyMessage)
+            }
+        }
+        .padding(.top, Spacing.lg)
     }
 
     // MARK: - Album Content
@@ -80,6 +97,13 @@ struct AlbumView: View {
                     }
             }
         }
+    }
+}
+
+extension AlbumView {
+    enum Strings {
+        static let emptyTitle = NSLocalizedString("album.empty.title", comment: "")
+        static let emptyMessage = NSLocalizedString("album.empty.message", comment: "")
     }
 }
 

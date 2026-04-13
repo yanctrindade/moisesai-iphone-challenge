@@ -4,8 +4,13 @@ import SwiftData
 struct HomeView: View {
     @State var viewModel: HomeViewModel
     @Environment(Router.self) private var router
+    @Environment(NetworkMonitor.self) private var networkMonitor
     @State private var isSearchActive = false
     @State private var selectedSongForOptions: Song?
+
+    private func isDisabled(_ song: Song) -> Bool {
+        !networkMonitor.isConnected && !viewModel.isCached(song)
+    }
 
     var body: some View {
         contentView
@@ -95,7 +100,7 @@ struct HomeView: View {
 
             LazyVStack(spacing: 0) {
                 ForEach(viewModel.recentlyPlayed) { song in
-                    SongRowView(song: song, showMoreButton: true) {
+                    SongRowView(song: song, showMoreButton: true, isDisabled: isDisabled(song)) {
                         selectedSongForOptions = song
                     }
                     .padding(.horizontal, Spacing.lg)
@@ -117,7 +122,7 @@ struct HomeView: View {
         ScrollView {
             LazyVStack(spacing: 0) {
                 ForEach(songs) { song in
-                    SongRowView(song: song) {
+                    SongRowView(song: song, isDisabled: isDisabled(song)) {
                         selectedSongForOptions = song
                     }
                     .padding(.horizontal, Spacing.lg)
@@ -170,5 +175,6 @@ extension HomeView {
         )
     }
     .environment(Router())
+    .environment(NetworkMonitor())
     .preferredColorScheme(.dark)
 }

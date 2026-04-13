@@ -5,6 +5,10 @@
 "general.unknown" = "Desconhecido";
 "general.cancel" = "Cancelar";
 
+// MARK: - Offline
+"offline.banner.message" = "Você está offline. Tocando apenas músicas em cache.";
+"general.dismiss" = "Dispensar";
+
 // MARK: - Songs Screen
 "songs.title" = "Músicas";
 "songs.search.placeholder" = "Buscar músicas...";
@@ -17,6 +21,8 @@
 
 // MARK: - Album Screen
 "album.tracks" = "Faixas";
+"album.empty.title" = "Sem Faixas";
+"album.empty.message" = "Este álbum não possui faixas disponíveis.";
 
 // MARK: - More Options
 "moreOptions.viewAlbum" = "Ver Álbum";

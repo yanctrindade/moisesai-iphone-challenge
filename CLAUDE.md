@@ -111,6 +111,7 @@ View → ViewModel → UseCase → Repository → Service (Network)
 ├── moisesai-iphone-challenge/           (main app target)
 │   ├── App/
 │   │   ├── moisesai_iphone_challengeApp.swift
+│   │   ├── AppDependencies.swift       (DI container for shared services)
 │   │   ├── ContentView.swift
 │   │   └── LaunchScreen (via Info.plist)
 │   ├── Core/

@@ -160,6 +160,7 @@ All user-facing strings use `NSLocalizedString` with keys in `Localizable.string
 - **Seek slider debounce** — only commits to AVPlayer on drag end (300ms guard) to prevent jitter
 - **MarqueeText** — scrolling text for long album titles in player navbar
 - **Custom MoreOptionsSheet** — matches Figma spec (#262626 at 80% opacity + blur)
+- **AppDependencies** — DI container with live factory, created once at app launch, hoists ViewModels into `@State` to prevent re-creation on body re-evaluation
 - **RouterProtocol** — navigation abstracted behind protocol for testability (MockRouter in tests)
 - **Actor-based ImageCache** — compiler-verified thread safety, no `@unchecked Sendable`
 - **Provider pattern** — planned for observability (Datadog), analytics, and crash reporting

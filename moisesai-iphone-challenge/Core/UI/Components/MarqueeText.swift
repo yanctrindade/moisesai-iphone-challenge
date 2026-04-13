@@ -5,15 +5,28 @@ struct MarqueeText: View {
     let font: Font
     let color: Color
     let maxWidth: CGFloat
+    let uiFont: UIFont
 
     @State private var offset: CGFloat = 0
-    @State private var needsScroll = false
 
     private let spacing: CGFloat = 40
     private let speed: Double = 30
 
+    init(
+        text: String,
+        font: Font,
+        color: Color,
+        maxWidth: CGFloat,
+        uiFont: UIFont = UIFont.systemFont(ofSize: 16, weight: .semibold)
+    ) {
+        self.text = text
+        self.font = font
+        self.color = color
+        self.maxWidth = maxWidth
+        self.uiFont = uiFont
+    }
+
     private var textWidth: CGFloat {
-        let uiFont = UIFont.systemFont(ofSize: 16, weight: .semibold)
         let attributes: [NSAttributedString.Key: Any] = [.font: uiFont]
         return (text as NSString).size(withAttributes: attributes).width
     }
