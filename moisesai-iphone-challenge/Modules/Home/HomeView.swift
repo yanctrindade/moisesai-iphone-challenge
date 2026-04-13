@@ -25,7 +25,7 @@ struct HomeView: View {
             viewModel.send(.onAppear)
         }
         .refreshable {
-            viewModel.send(.refresh)
+            await viewModel.refresh()
         }
         .sheet(item: $selectedSongForOptions) { song in
             Text(song.trackName)
@@ -95,7 +95,6 @@ struct HomeView: View {
                 if !viewModel.searchText.isEmpty {
                     Button {
                         viewModel.searchText = ""
-                        viewModel.send(.clearSearch)
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(.secondary)
@@ -128,7 +127,7 @@ struct HomeView: View {
             songListView(songs)
         case .error(let message):
             ErrorStateView(message: message) {
-                viewModel.send(.refresh)
+                Task { await viewModel.refresh() }
             }
         }
     }

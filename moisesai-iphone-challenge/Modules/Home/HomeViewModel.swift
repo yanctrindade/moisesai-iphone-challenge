@@ -1,4 +1,7 @@
 import Foundation
+import os
+
+private let logger = Logger(subsystem: "com.yantrindade.moisesai", category: "HomeViewModel")
 
 @Observable
 @MainActor
@@ -19,7 +22,6 @@ final class HomeViewModel {
         case onAppear
         case search(String)
         case loadMore
-        case refresh
         case clearSearch
     }
 
@@ -68,10 +70,34 @@ final class HomeViewModel {
             performSearch(term)
         case .loadMore:
             Task { await loadNextPage() }
-        case .refresh:
-            Task { await refresh() }
         case .clearSearch:
             clearSearch()
+        }
+    }
+
+    func refresh() async {
+        if currentTerm.isEmpty {
+            await loadRecentlyPlayed()
+        } else {
+            currentOffset = 0
+            hasMorePages = true
+
+            do {
+                let results = try await searchSongsUseCase.execute(
+                    term: currentTerm,
+                    limit: Constants.pageSize,
+                    offset: 0
+                )
+                guard currentTerm == currentTerm else { return }
+                songs = results
+                hasMorePages = results.count >= Constants.pageSize
+                currentOffset = results.count
+                state = results.isEmpty ? .idle : .loaded(songs)
+            } catch {
+                if songs.isEmpty {
+                    state = .error(error.localizedDescription)
+                }
+            }
         }
     }
 
@@ -101,7 +127,10 @@ final class HomeViewModel {
 
     private func executeSearch(_ term: String) async {
         let trimmedTerm = term.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedTerm.isEmpty else { return }
+        guard !trimmedTerm.isEmpty else {
+            clearSearch()
+            return
+        }
 
         currentTerm = trimmedTerm
         currentOffset = 0
@@ -121,11 +150,13 @@ final class HomeViewModel {
                 limit: Constants.pageSize,
                 offset: 0
             )
+            guard trimmedTerm == currentTerm, !Task.isCancelled else { return }
             songs = results
             hasMorePages = results.count >= Constants.pageSize
             currentOffset = results.count
             state = results.isEmpty ? .idle : .loaded(songs)
         } catch {
+            guard trimmedTerm == currentTerm, !Task.isCancelled else { return }
             if songs.isEmpty {
                 state = .error(error.localizedDescription)
             }
@@ -148,35 +179,10 @@ final class HomeViewModel {
             currentOffset += results.count
             state = .loaded(songs)
         } catch {
-            // Keep existing data, just stop loading more
+            logger.error("Failed to load next page: \(error.localizedDescription)")
         }
 
         isLoadingMore = false
-    }
-
-    private func refresh() async {
-        if currentTerm.isEmpty {
-            await loadRecentlyPlayed()
-        } else {
-            currentOffset = 0
-            hasMorePages = true
-
-            do {
-                let results = try await searchSongsUseCase.execute(
-                    term: currentTerm,
-                    limit: Constants.pageSize,
-                    offset: 0
-                )
-                songs = results
-                hasMorePages = results.count >= Constants.pageSize
-                currentOffset = results.count
-                state = results.isEmpty ? .idle : .loaded(songs)
-            } catch {
-                if songs.isEmpty {
-                    state = .error(error.localizedDescription)
-                }
-            }
-        }
     }
 
     private func loadRecentlyPlayed() async {

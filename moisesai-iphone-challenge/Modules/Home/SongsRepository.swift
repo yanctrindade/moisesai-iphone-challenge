@@ -1,4 +1,7 @@
 import CoreData
+import os
+
+private let logger = Logger(subsystem: "com.yantrindade.moisesai", category: "SongsRepository")
 
 final class SongsRepository: SongsRepositoryProtocol {
     private let networkService: NetworkServiceProtocol
@@ -32,8 +35,13 @@ final class SongsRepository: SongsRepositoryProtocol {
             request.predicate = NSPredicate(format: "searchTerm ==[c] %@", term)
             request.sortDescriptors = [NSSortDescriptor(key: "cachedAt", ascending: true)]
 
-            guard let entities = try? context.fetch(request) else { return [] }
-            return entities.map { $0.toDomain() }
+            do {
+                let entities = try context.fetch(request)
+                return entities.map { $0.toDomain() }
+            } catch {
+                logger.error("Failed to fetch cached songs: \(error.localizedDescription)")
+                return []
+            }
         }
     }
 
@@ -44,8 +52,13 @@ final class SongsRepository: SongsRepositoryProtocol {
             request.sortDescriptors = [NSSortDescriptor(key: "playedAt", ascending: false)]
             request.fetchLimit = 20
 
-            guard let entities = try? context.fetch(request) else { return [] }
-            return entities.map { $0.toDomain() }
+            do {
+                let entities = try context.fetch(request)
+                return entities.map { $0.toDomain() }
+            } catch {
+                logger.error("Failed to fetch recently played: \(error.localizedDescription)")
+                return []
+            }
         }
     }
 
@@ -55,40 +68,46 @@ final class SongsRepository: SongsRepositoryProtocol {
             let request = RecentlyPlayedSongEntity.fetchRequest() as! NSFetchRequest<RecentlyPlayedSongEntity>
             request.predicate = NSPredicate(format: "trackId == %lld", Int64(song.id))
 
-            let entity: RecentlyPlayedSongEntity
-            if let existing = try? context.fetch(request).first {
-                entity = existing
-            } else {
-                entity = RecentlyPlayedSongEntity(context: context)
+            do {
+                let entity = try context.fetch(request).first ?? RecentlyPlayedSongEntity(context: context)
+                entity.update(from: song)
+                try context.save()
+            } catch {
+                logger.error("Failed to save recently played: \(error.localizedDescription)")
             }
-
-            entity.update(from: song)
-            try? context.save()
         }
     }
 
     // MARK: - Private
 
     private func cacheSongs(_ songs: [Song], for term: String) async {
+        guard !songs.isEmpty else { return }
+
         let context = persistenceController.newBackgroundContext()
         await context.perform {
-            for song in songs {
-                let request = CachedSongEntity.fetchRequest() as! NSFetchRequest<CachedSongEntity>
-                request.predicate = NSPredicate(
-                    format: "trackId == %lld AND searchTerm ==[c] %@",
-                    Int64(song.id), term
+            let trackIds = songs.map { Int64($0.id) }
+            let request = CachedSongEntity.fetchRequest() as! NSFetchRequest<CachedSongEntity>
+            request.predicate = NSPredicate(
+                format: "searchTerm ==[c] %@ AND trackId IN %@",
+                term,
+                trackIds as [NSNumber]
+            )
+
+            do {
+                let existingEntities = try context.fetch(request)
+                let existingByTrackId = Dictionary(
+                    uniqueKeysWithValues: existingEntities.map { ($0.trackId, $0) }
                 )
 
-                let entity: CachedSongEntity
-                if let existing = try? context.fetch(request).first {
-                    entity = existing
-                } else {
-                    entity = CachedSongEntity(context: context)
+                for song in songs {
+                    let entity = existingByTrackId[Int64(song.id)] ?? CachedSongEntity(context: context)
+                    entity.update(from: song, searchTerm: term)
                 }
 
-                entity.update(from: song, searchTerm: term)
+                try context.save()
+            } catch {
+                logger.error("Failed to cache songs: \(error.localizedDescription)")
             }
-            try? context.save()
         }
     }
 }
