@@ -62,6 +62,9 @@ struct PlayerView: View {
         .onAppear {
             viewModel.send(.onAppear)
         }
+        .onDisappear {
+            viewModel.send(.stop)
+        }
         .sheet(isPresented: $showMoreOptions) {
             MoreOptionsSheet(
                 song: viewModel.song,

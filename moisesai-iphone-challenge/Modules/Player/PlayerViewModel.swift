@@ -26,6 +26,7 @@ final class PlayerViewModel {
         case seekChanged(TimeInterval)
         case seekEnded(TimeInterval)
         case toggleRepeat
+        case stop
     }
 
     // MARK: - RepeatMode
@@ -119,6 +120,9 @@ final class PlayerViewModel {
             }
         case .toggleRepeat:
             cycleRepeatMode()
+        case .stop:
+            audioPlayer.stop()
+            state = .idle
         }
     }
 
