@@ -1,13 +1,13 @@
 # Moises AI iPhone Challenge
 
-Music player iOS app — searches songs via Apple iTunes API, caches with Core Data, plays audio previews with AVFoundation.
+Music player iOS app — searches songs via Apple iTunes API, caches with SwiftData, plays audio previews with AVFoundation.
 
 ## Tech Stack
 
 - **Language:** Swift 6 (strict concurrency checking enabled)
 - **UI:** SwiftUI (iOS 18+)
 - **Architecture:** MVVM + Clean Architecture layers
-- **Persistence:** Core Data (offline-first)
+- **Persistence:** SwiftData (offline-first)
 - **Networking:** URLSession with protocol-based abstraction
 - **Audio:** AVFoundation / AVPlayer
 - **Testing:** Apple Testing framework + swift-snapshot-testing
@@ -17,7 +17,7 @@ Music player iOS app — searches songs via Apple iTunes API, caches with Core D
 
 ```
 View → ViewModel → UseCase → Repository → Service (Network)
-                                        → Core Data (Cache)
+                                        → SwiftData (Cache)
 ```
 
 ### View (SwiftUI)
@@ -37,13 +37,13 @@ View → ViewModel → UseCase → Repository → Service (Network)
 - Stateless where possible
 
 ### Repository (Protocol-based)
-- Coordinates between Service (network) and Core Data (cache)
+- Coordinates between Service (network) and SwiftData (cache)
 - **Offline-first strategy:**
   1. Show cached data immediately (no loading spinner if cache exists)
   2. Fetch fresh data from API in background
   3. Update UI silently when fresh data arrives
   4. Loading state only shown when cache is empty (e.g., first-ever launch)
-- Maps between network DTOs, Core Data entities, and domain models
+- Maps between network DTOs, SwiftData entities, and domain models
 - Protocol-defined so implementations are swappable
 
 ### Service (Network Abstraction)
@@ -68,13 +68,12 @@ View → ViewModel → UseCase → Repository → Service (Network)
 - Use `TaskGroup` for parallel fetches where appropriate
 - Cancel tasks in ViewModel `deinit` or `.onDisappear`
 
-## Core Data (Persistence)
+## SwiftData (Persistence)
 
-- `NSPersistentContainer` wrapped in a `PersistenceController`
-- Use `NSManagedObject` subclasses for entities (`CachedSong`, `RecentlyPlayedSong`)
-- Write operations on background context (`newBackgroundContext()`)
-- Read operations via fetch requests through the repository layer
-- In-memory store option for previews and tests (`NSInMemoryStoreType`)
+- `@Model` classes: `CachedSong`, `RecentlyPlayedSong`
+- `ModelContainer` configured at app level via `.modelContainer(for:)` modifier
+- `ModelContext` used in repository for queries and mutations
+- In-memory `ModelConfiguration` for previews and tests
 - Recently played songs tracked with timestamps, displayed on home screen
 
 ## Networking (iTunes Search API)
@@ -226,7 +225,7 @@ Views call `viewModel.send(.action)` for all interactions. Views switch on `view
 
 ### Required Coverage
 - **Service tests:** mock URLProtocol
-- **Repository tests:** mock Service + in-memory Core Data
+- **Repository tests:** mock Service + in-memory SwiftData
 - **UseCase tests:** mock Repository
 - **ViewModel tests:** mock UseCase, verify state transitions
 

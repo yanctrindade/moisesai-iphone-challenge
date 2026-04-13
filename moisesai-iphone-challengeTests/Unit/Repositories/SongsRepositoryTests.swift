@@ -1,22 +1,26 @@
 import Testing
-import CoreData
+import SwiftData
 @testable import moisesai_iphone_challenge
 
 @Suite("SongsRepository Tests")
 struct SongsRepositoryTests {
 
-    private func makeSUT() -> (SongsRepository, MockNetworkService, PersistenceController) {
+    private func makeSUT() throws -> (SongsRepository, MockNetworkService) {
         let networkService = MockNetworkService()
-        let persistence = PersistenceController(inMemory: true)
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(
+            for: CachedSong.self, RecentlyPlayedSong.self,
+            configurations: config
+        )
         let repository = SongsRepository(
             networkService: networkService,
-            persistenceController: persistence
+            modelContainer: container
         )
-        return (repository, networkService, persistence)
+        return (repository, networkService)
     }
 
     @Test func test_searchSongs_callsNetworkAndReturnsSongs() async throws {
-        let (sut, networkService, _) = makeSUT()
+        let (sut, networkService) = try makeSUT()
         let response = iTunesSearchResponseFixture.make(
             results: [iTunesTrackFixture.make(trackName: "Purple Rain")]
         )
@@ -30,7 +34,7 @@ struct SongsRepositoryTests {
     }
 
     @Test func test_searchSongs_filtersNonTrackResults() async throws {
-        let (sut, networkService, _) = makeSUT()
+        let (sut, networkService) = try makeSUT()
         let response = iTunesSearchResponseFixture.make(
             results: [
                 iTunesTrackFixture.make(trackName: "Song", wrapperType: "track"),
@@ -45,16 +49,14 @@ struct SongsRepositoryTests {
         #expect(songs.first?.trackName == "Song")
     }
 
-    @Test func test_searchSongs_cachesResultsInCoreData() async throws {
-        let (sut, networkService, persistence) = makeSUT()
+    @Test func test_searchSongs_cachesResultsInSwiftData() async throws {
+        let (sut, networkService) = try makeSUT()
         let response = iTunesSearchResponseFixture.make(
             results: [iTunesTrackFixture.make(trackName: "Cached Song")]
         )
         networkService.resultData = response
 
         _ = try await sut.searchSongs(term: "cache test", limit: 20, offset: 0)
-
-        // Allow background context to save
         try await Task.sleep(for: .milliseconds(100))
 
         let cached = await sut.getCachedSongs(for: "cache test")
@@ -62,8 +64,8 @@ struct SongsRepositoryTests {
         #expect(cached.first?.trackName == "Cached Song")
     }
 
-    @Test func test_searchSongs_whenNetworkFails_throwsError() async {
-        let (sut, networkService, _) = makeSUT()
+    @Test func test_searchSongs_whenNetworkFails_throwsError() async throws {
+        let (sut, networkService) = try makeSUT()
         networkService.error = NetworkError.noConnection
 
         do {
@@ -74,16 +76,16 @@ struct SongsRepositoryTests {
         }
     }
 
-    @Test func test_getCachedSongs_whenEmpty_returnsEmptyArray() async {
-        let (sut, _, _) = makeSUT()
+    @Test func test_getCachedSongs_whenEmpty_returnsEmptyArray() async throws {
+        let (sut, _) = try makeSUT()
 
         let cached = await sut.getCachedSongs(for: "nonexistent")
 
         #expect(cached.isEmpty)
     }
 
-    @Test func test_getRecentlyPlayed_whenEmpty_returnsEmptyArray() async {
-        let (sut, _, _) = makeSUT()
+    @Test func test_getRecentlyPlayed_whenEmpty_returnsEmptyArray() async throws {
+        let (sut, _) = try makeSUT()
 
         let result = await sut.getRecentlyPlayed()
 
@@ -91,12 +93,10 @@ struct SongsRepositoryTests {
     }
 
     @Test func test_saveRecentlyPlayed_persistsSong() async throws {
-        let (sut, _, _) = makeSUT()
+        let (sut, _) = try makeSUT()
         let song = SongFixture.make(trackName: "Recently Played")
 
         await sut.saveRecentlyPlayed(song)
-
-        // Allow background context to save
         try await Task.sleep(for: .milliseconds(100))
 
         let result = await sut.getRecentlyPlayed()
@@ -105,12 +105,11 @@ struct SongsRepositoryTests {
     }
 
     @Test func test_saveRecentlyPlayed_updateExisting_doesNotDuplicate() async throws {
-        let (sut, _, _) = makeSUT()
+        let (sut, _) = try makeSUT()
         let song = SongFixture.make(id: 42, trackName: "Same Song")
 
         await sut.saveRecentlyPlayed(song)
         await sut.saveRecentlyPlayed(song)
-
         try await Task.sleep(for: .milliseconds(100))
 
         let result = await sut.getRecentlyPlayed()

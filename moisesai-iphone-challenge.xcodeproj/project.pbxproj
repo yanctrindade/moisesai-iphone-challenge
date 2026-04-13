@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		598BFD742F8D4F66008E6961 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 052ED647246AA212498FBABE /* SnapshotTesting */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		59ED88AD2F8C937E00CE3C95 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -59,6 +63,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				598BFD742F8D4F66008E6961 /* SnapshotTesting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -111,8 +116,6 @@
 				59ED88A12F8C937C00CE3C95 /* moisesai-iphone-challenge */,
 			);
 			name = "moisesai-iphone-challenge";
-			packageProductDependencies = (
-			);
 			productName = "moisesai-iphone-challenge";
 			productReference = 59ED889F2F8C937C00CE3C95 /* moisesai-iphone-challenge.app */;
 			productType = "com.apple.product-type.application";
@@ -135,6 +138,7 @@
 			);
 			name = "moisesai-iphone-challengeTests";
 			packageProductDependencies = (
+				052ED647246AA212498FBABE /* SnapshotTesting */,
 			);
 			productName = "moisesai-iphone-challengeTests";
 			productReference = 59ED88AC2F8C937E00CE3C95 /* moisesai-iphone-challengeTests.xctest */;
@@ -157,8 +161,6 @@
 				59ED88B92F8C937E00CE3C95 /* moisesai-iphone-challengeUITests */,
 			);
 			name = "moisesai-iphone-challengeUITests";
-			packageProductDependencies = (
-			);
 			productName = "moisesai-iphone-challengeUITests";
 			productReference = 59ED88B62F8C937E00CE3C95 /* moisesai-iphone-challengeUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
@@ -196,6 +198,9 @@
 			);
 			mainGroup = 59ED88962F8C937C00CE3C95;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				0CE9245B079F616EA271D680 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 59ED88A02F8C937C00CE3C95 /* Products */;
 			projectDirPath = "";
@@ -391,6 +396,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NKR3GSF6DX;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -409,7 +415,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.1;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "br.com.yantrindade.moisesai-iphone-challenge";
+				PRODUCT_BUNDLE_IDENTIFIER = br.com.app.CashPago;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -432,6 +438,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NKR3GSF6DX;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -450,7 +457,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.1;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "br.com.yantrindade.moisesai-iphone-challenge";
+				PRODUCT_BUNDLE_IDENTIFIER = br.com.app.CashPago;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -604,6 +611,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		0CE9245B079F616EA271D680 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.17.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		052ED647246AA212498FBABE /* SnapshotTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0CE9245B079F616EA271D680 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = SnapshotTesting;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 59ED88972F8C937C00CE3C95 /* Project object */;
 }

@@ -22,6 +22,8 @@ protocol AudioPlayerServiceProtocol: AnyObject, Sendable {
 
 @MainActor
 final class AudioPlayerService: AudioPlayerServiceProtocol, @unchecked Sendable {
+    static let shared = AudioPlayerService()
+
     private var player: AVPlayer?
     private var timeObserverToken: Any?
     private var endObserver: NSObjectProtocol?

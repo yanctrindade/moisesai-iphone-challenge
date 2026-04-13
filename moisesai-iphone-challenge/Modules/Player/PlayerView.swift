@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct PlayerView: View {
     @State var viewModel: PlayerViewModel
@@ -62,6 +63,9 @@ struct PlayerView: View {
         .onAppear {
             viewModel.send(.onAppear)
         }
+        .onDisappear {
+            viewModel.send(.stop)
+        }
         .sheet(isPresented: $showMoreOptions) {
             MoreOptionsSheet(
                 song: viewModel.song,
@@ -71,9 +75,6 @@ struct PlayerView: View {
                         collectionName: viewModel.song.collectionName,
                         artworkURL: viewModel.song.artworkURL
                     ))
-                },
-                onShare: {
-                    shareSong(viewModel.song)
                 }
             )
         }
@@ -248,20 +249,6 @@ struct PlayerView: View {
         }
     }
 
-    // MARK: - Helpers
-
-    private func shareSong(_ song: Song) {
-        var items: [Any] = ["\(song.trackName) - \(song.artistName)"]
-        if let url = song.previewURL {
-            items.append(url)
-        }
-        let activityVC = UIActivityViewController(activityItems: items, applicationActivities: nil)
-
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootVC = windowScene.windows.first?.rootViewController {
-            rootVC.present(activityVC, animated: true)
-        }
-    }
 }
 
 #Preview {
@@ -273,6 +260,10 @@ struct PlayerView: View {
         durationMillis: 248000, genre: "Electronic",
         releaseDate: "2013-05-17"
     )
+    let container = try! ModelContainer(
+        for: CachedSong.self, RecentlyPlayedSong.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
 
     NavigationStack {
         PlayerView(
@@ -281,7 +272,7 @@ struct PlayerView: View {
                 playlist: [previewSong],
                 audioPlayer: AudioPlayerService(),
                 saveRecentlyPlayedUseCase: SaveRecentlyPlayedUseCase(
-                    repository: SongsRepository(networkService: URLSessionNetworkService())
+                    repository: SongsRepository(networkService: URLSessionNetworkService(), modelContainer: container)
                 )
             )
         )

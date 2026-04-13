@@ -129,19 +129,22 @@ struct PlayerViewModelTests {
 
     // MARK: - Seek
 
-    @Test func test_send_seek_seeksToTimeOnEnd() {
+    @Test func test_send_seek_seeksToTimeOnEnd() async throws {
         let (sut, audioPlayer, _) = makeSUT()
 
         sut.send(.seekStarted)
         sut.send(.seekChanged(15.0))
         #expect(sut.isSeeking == true)
         #expect(sut.currentTime == 15.0)
-        #expect(audioPlayer.seekCallCount == 0) // not yet committed
+        #expect(audioPlayer.seekCallCount == 0)
 
         sut.send(.seekEnded(15.0))
-        #expect(sut.isSeeking == false)
         #expect(audioPlayer.seekCallCount == 1)
         #expect(audioPlayer.lastSeekTime == 15.0)
+        #expect(sut.isSeeking == true) // still true due to 300ms debounce
+
+        try await Task.sleep(for: .milliseconds(400))
+        #expect(sut.isSeeking == false) // now cleared
     }
 
     // MARK: - Repeat

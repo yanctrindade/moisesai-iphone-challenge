@@ -3,8 +3,11 @@ import SwiftUI
 struct MoreOptionsSheet: View {
     let song: Song
     var onViewAlbum: () -> Void
-    var onShare: () -> Void
     @Environment(\.dismiss) private var dismiss
+
+    private var shareText: String {
+        "\(song.trackName) - \(song.artistName)"
+    }
 
     var body: some View {
         VStack(spacing: 12) {
@@ -33,10 +36,7 @@ struct MoreOptionsSheet: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }
 
-            Button {
-                dismiss()
-                onShare()
-            } label: {
+            ShareLink(item: shareText) {
                 HStack(spacing: 8) {
                     Image(systemName: "square.and.arrow.up")
                         .font(.system(size: 14))
@@ -76,8 +76,7 @@ struct MoreOptionsSheet: View {
                     durationMillis: 213000, genre: "Hip-Hop",
                     releaseDate: "2017-04-14"
                 ),
-                onViewAlbum: {},
-                onShare: {}
+                onViewAlbum: {}
             )
         }
         .preferredColorScheme(.dark)
