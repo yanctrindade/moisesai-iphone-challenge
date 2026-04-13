@@ -49,7 +49,7 @@ struct CachedAsyncImage<Placeholder: View>: View {
     }
 }
 
-final class ImageCache: Sendable {
+final class ImageCache: @unchecked Sendable {
     static let shared = ImageCache()
 
     private let cache = NSCache<NSURL, UIImage>()
