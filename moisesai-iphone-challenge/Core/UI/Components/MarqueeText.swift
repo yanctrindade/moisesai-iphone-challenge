@@ -6,63 +6,57 @@ struct MarqueeText: View {
     let color: Color
     let maxWidth: CGFloat
 
-    @State private var textWidth: CGFloat = 0
     @State private var offset: CGFloat = 0
-    @State private var animating = false
+    @State private var needsScroll = false
 
     private let spacing: CGFloat = 40
-    private let speed: Double = 30 // points per second
+    private let speed: Double = 30
+
+    private var textWidth: CGFloat {
+        let uiFont = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        let attributes: [NSAttributedString.Key: Any] = [.font: uiFont]
+        return (text as NSString).size(withAttributes: attributes).width
+    }
 
     var body: some View {
-        GeometryReader { geo in
-            let containerWidth = geo.size.width
-            let shouldScroll = textWidth > containerWidth
+        let shouldScroll = textWidth > maxWidth
 
+        Group {
             if shouldScroll {
-                scrollingContent(containerWidth: containerWidth)
+                scrollingContent
             } else {
-                staticContent
+                Text(text)
+                    .font(font)
+                    .foregroundStyle(color)
+                    .lineLimit(1)
             }
         }
-        .frame(maxWidth: maxWidth)
-        .frame(height: 20)
-        .clipped()
     }
 
-    private var staticContent: some View {
-        Text(text)
-            .font(font)
-            .foregroundStyle(color)
-            .lineLimit(1)
-            .frame(maxWidth: .infinity)
-    }
-
-    private func scrollingContent(containerWidth: CGFloat) -> some View {
+    private var scrollingContent: some View {
         let totalWidth = textWidth + spacing
 
         return HStack(spacing: spacing) {
             Text(text)
                 .font(font)
                 .foregroundStyle(color)
-                .lineLimit(1)
                 .fixedSize()
 
             Text(text)
                 .font(font)
                 .foregroundStyle(color)
-                .lineLimit(1)
                 .fixedSize()
         }
         .offset(x: offset)
+        .frame(width: maxWidth, alignment: .leading)
+        .clipped()
         .onAppear {
-            textWidth = measureText(text, font: font)
             startAnimation(totalWidth: totalWidth)
         }
         .onChange(of: text) {
             offset = 0
-            textWidth = measureText(text, font: font)
-            let newTotalWidth = textWidth + spacing
-            startAnimation(totalWidth: newTotalWidth)
+            let newTotal = textWidth + spacing
+            startAnimation(totalWidth: newTotal)
         }
     }
 
@@ -78,26 +72,19 @@ struct MarqueeText: View {
             offset = -totalWidth
         }
     }
-
-    private func measureText(_ text: String, font: Font) -> CGFloat {
-        let uiFont = UIFont.systemFont(ofSize: 16, weight: .semibold)
-        let attributes: [NSAttributedString.Key: Any] = [.font: uiFont]
-        let size = (text as NSString).size(withAttributes: attributes)
-        return size.width
-    }
 }
 
 #Preview {
     VStack(spacing: 20) {
         MarqueeText(
-            text: "Short Title",
+            text: "Short",
             font: .system(size: 16, weight: .semibold),
             color: .white,
             maxWidth: 200
         )
 
         MarqueeText(
-            text: "This Is A Very Long Album Title That Should Scroll Horizontally",
+            text: "This Is A Very Long Album Title That Should Scroll",
             font: .system(size: 16, weight: .semibold),
             color: .white,
             maxWidth: 200
