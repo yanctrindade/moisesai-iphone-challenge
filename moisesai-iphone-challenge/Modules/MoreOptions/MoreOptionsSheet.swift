@@ -3,6 +3,7 @@ import SwiftUI
 struct MoreOptionsSheet: View {
     let song: Song
     var onViewAlbum: () -> Void
+    var onShare: () -> Void
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -32,10 +33,28 @@ struct MoreOptionsSheet: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }
 
+            Button {
+                dismiss()
+                onShare()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.white)
+                    Text(NSLocalizedString("moreOptions.share", comment: ""))
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(.white)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+
             Spacer()
         }
         .padding(.horizontal, 20)
-        .presentationDetents([.height(192)])
+        .presentationDetents([.height(250)])
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(16)
         .presentationBackground {
@@ -57,7 +76,8 @@ struct MoreOptionsSheet: View {
                     durationMillis: 213000, genre: "Hip-Hop",
                     releaseDate: "2017-04-14"
                 ),
-                onViewAlbum: {}
+                onViewAlbum: {},
+                onShare: {}
             )
         }
         .preferredColorScheme(.dark)
