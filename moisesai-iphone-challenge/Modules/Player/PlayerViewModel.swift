@@ -107,9 +107,14 @@ final class PlayerViewModel {
         case .seekChanged(let time):
             currentTime = time
         case .seekEnded(let time):
-            isSeeking = false
-            audioPlayer.seek(to: time)
             currentTime = time
+            audioPlayer.seek(to: time)
+            // Delay clearing isSeeking so the time observer doesn't
+            // snap the slider back to the old position before AVPlayer catches up
+            Task {
+                try? await Task.sleep(for: .milliseconds(300))
+                isSeeking = false
+            }
         case .toggleRepeat:
             cycleRepeatMode()
         }
@@ -136,9 +141,12 @@ final class PlayerViewModel {
         audioPlayer.addPeriodicTimeObserver { [weak self] time in
             Task { @MainActor in
                 guard let self, !self.isSeeking else { return }
-                self.currentTime = time
+                // Only update if change is meaningful to avoid micro-jitter
+                if abs(self.currentTime - time) > 0.1 {
+                    self.currentTime = time
+                }
                 let dur = self.audioPlayer.duration
-                if dur.isFinite && dur > 0 {
+                if dur.isFinite && dur > 0 && self.duration != dur {
                     self.duration = dur
                 }
             }
