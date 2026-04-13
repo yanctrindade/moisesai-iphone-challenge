@@ -123,6 +123,21 @@ final class HomeViewModel {
             return
         }
 
+        // Immediately show loading so the user doesn't see stale "no results"
+        // during the debounce window. If the current term already has cached
+        // results, keep showing them (avoid flicker).
+        let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            clearSearch()
+            return
+        }
+
+        if case .loaded = state {
+            // keep previous results visible during debounce
+        } else {
+            state = .loading
+        }
+
         searchTask = Task {
             try? await Task.sleep(for: Timing.searchDebounce)
             guard !Task.isCancelled else { return }
