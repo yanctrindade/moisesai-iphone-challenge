@@ -142,8 +142,7 @@ View → ViewModel → UseCase → Repository → Service (Network)
 │   │       │   ├── MarqueeText.swift
 │   │       │   └── SkeletonView.swift
 │   │       └── Extensions/
-│   │           ├── Color+Hex.swift
-│   │           └── String+Localized.swift (L10n enum)
+│   │           └── Color+Hex.swift
 │   ├── Modules/
 │   │   ├── Splash/
 │   │   │   └── SplashView.swift

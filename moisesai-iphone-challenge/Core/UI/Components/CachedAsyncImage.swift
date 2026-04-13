@@ -23,12 +23,13 @@ struct CachedAsyncImage<Placeholder: View>: View {
             }
         }
         .task(id: url) {
+            image = nil
             await loadImage()
         }
     }
 
     private func loadImage() async {
-        guard let url, !isLoading else { return }
+        guard let url else { return }
 
         if let cached = await ImageCache.shared.get(for: url) {
             image = cached
