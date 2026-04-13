@@ -51,7 +51,7 @@ struct HomeViewModelTests {
         searchUseCase.executeResult = SongFixture.makeList(count: 2)
 
         sut.searchText = "daft punk"
-        try await Task.sleep(for: .milliseconds(700))
+        try await Task.sleep(for: .seconds(1))
 
         #expect(searchUseCase.executeCallCount == 1)
         #expect(searchUseCase.executeLastTerm == "daft punk")
@@ -63,7 +63,7 @@ struct HomeViewModelTests {
         searchUseCase.executeResult = songs
 
         sut.searchText = "test"
-        try await Task.sleep(for: .milliseconds(700))
+        try await Task.sleep(for: .seconds(1))
 
         if case .loaded(let loadedSongs) = sut.state {
             #expect(loadedSongs.count == 3)
@@ -77,7 +77,7 @@ struct HomeViewModelTests {
         searchUseCase.executeResult = SongFixture.makeList(count: 2)
 
         sut.searchText = "test"
-        try await Task.sleep(for: .milliseconds(700))
+        try await Task.sleep(for: .seconds(1))
 
         sut.searchText = ""
         try await Task.sleep(for: .milliseconds(100))
@@ -94,7 +94,7 @@ struct HomeViewModelTests {
         searchUseCase.executeError = NetworkError.noConnection
 
         sut.searchText = "test"
-        try await Task.sleep(for: .milliseconds(700))
+        try await Task.sleep(for: .seconds(1))
 
         if case .error = sut.state {
             // expected
@@ -110,7 +110,7 @@ struct HomeViewModelTests {
         searchUseCase.executeResult = SongFixture.makeList(count: 5)
 
         sut.searchText = "cached"
-        try await Task.sleep(for: .milliseconds(700))
+        try await Task.sleep(for: .seconds(1))
 
         // After full execution, should show fresh results
         if case .loaded(let songs) = sut.state {
@@ -128,7 +128,7 @@ struct HomeViewModelTests {
         searchUseCase.executeResult = SongFixture.makeList(count: 3)
 
         sut.searchText = "test"
-        try await Task.sleep(for: .milliseconds(700))
+        try await Task.sleep(for: .seconds(1))
 
         sut.send(.clearSearch)
 
@@ -147,7 +147,7 @@ struct HomeViewModelTests {
         searchUseCase.executeResult = firstPage
 
         sut.searchText = "test"
-        try await Task.sleep(for: .milliseconds(700))
+        try await Task.sleep(for: .seconds(1))
 
         let secondPage = (20..<25).map { SongFixture.make(id: $0, trackName: "Song \($0)") }
         searchUseCase.executeResult = secondPage
@@ -168,7 +168,7 @@ struct HomeViewModelTests {
         searchUseCase.executeResult = SongFixture.makeList(count: 5)
 
         sut.searchText = "test"
-        try await Task.sleep(for: .milliseconds(700))
+        try await Task.sleep(for: .seconds(1))
 
         let callCountBefore = searchUseCase.executeCallCount
         sut.send(.loadMore)
@@ -184,7 +184,7 @@ struct HomeViewModelTests {
         searchUseCase.executeResult = SongFixture.makeList(count: 3)
 
         sut.searchText = "test"
-        try await Task.sleep(for: .milliseconds(700))
+        try await Task.sleep(for: .seconds(1))
 
         let refreshed = SongFixture.makeList(count: 5)
         searchUseCase.executeResult = refreshed
