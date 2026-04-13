@@ -42,8 +42,9 @@ struct HomeView: View {
                     isSearching = true
                 }
             } label: {
-                Image(systemName: "magnifyingglass")
+                Image(systemName: "magnifyingglass.circle")
                     .font(.title2)
+                    .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(.white)
                     .frame(width: 44, height: 44)
             }
