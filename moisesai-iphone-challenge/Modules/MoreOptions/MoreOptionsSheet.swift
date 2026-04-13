@@ -31,7 +31,7 @@ struct MoreOptionsSheet: View {
             Image(systemName: "square.and.arrow.up")
                 .font(.system(size: Sizing.sheetButtonIconSize))
                 .foregroundStyle(.white)
-            Text(L10n.share)
+            Text(Strings.share)
                 .font(Typography.sheetButton)
                 .foregroundStyle(.white)
         }
@@ -58,7 +58,7 @@ struct MoreOptionsSheet: View {
                     Image(systemName: "music.note.list")
                         .font(.system(size: Sizing.sheetButtonIconSize))
                         .foregroundStyle(.white)
-                    Text(L10n.viewAlbum)
+                    Text(Strings.viewAlbum)
                         .font(Typography.sheetButton)
                         .foregroundStyle(.white)
                 }
@@ -80,6 +80,13 @@ struct MoreOptionsSheet: View {
             AppColors.sheetBackground
                 .background(.ultraThinMaterial)
         }
+    }
+}
+
+extension MoreOptionsSheet {
+    enum Strings {
+        static let viewAlbum = NSLocalizedString("moreOptions.viewAlbum", comment: "")
+        static let share = NSLocalizedString("moreOptions.share", comment: "")
     }
 }
 

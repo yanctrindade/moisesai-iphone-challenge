@@ -6,16 +6,23 @@ struct ErrorStateView: View {
 
     var body: some View {
         ContentUnavailableView {
-            Label(L10n.errorTitle, systemImage: "exclamationmark.triangle")
+            Label(Strings.errorTitle, systemImage: "exclamationmark.triangle")
         } description: {
             Text(message)
         } actions: {
             if let retryAction {
-                Button(L10n.tryAgain, action: retryAction)
+                Button(Strings.tryAgain, action: retryAction)
                     .buttonStyle(.bordered)
             }
         }
         .accessibilityElement(children: .combine)
+    }
+}
+
+extension ErrorStateView {
+    enum Strings {
+        static let errorTitle = NSLocalizedString("general.error.title", comment: "")
+        static let tryAgain = NSLocalizedString("general.error.tryAgain", comment: "")
     }
 }
 

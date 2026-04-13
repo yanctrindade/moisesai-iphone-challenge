@@ -49,14 +49,26 @@ struct SongRowView: View {
                         .frame(width: Sizing.tapTarget, height: Sizing.tapTarget)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(L10n.moreOptions(for: song.trackName))
+                .accessibilityLabel(Strings.moreOptions(for: song.trackName))
             }
         }
         .padding(.vertical, Spacing.xs)
         .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(L10n.songRow(song.trackName, song.artistName))
+        .accessibilityLabel(Strings.songRow(song.trackName, song.artistName))
         .accessibilityAddTraits(.isButton)
+    }
+}
+
+extension SongRowView {
+    enum Strings {
+        static func moreOptions(for song: String) -> String {
+            String(format: NSLocalizedString("accessibility.songRow.moreOptions", comment: ""), song)
+        }
+
+        static func songRow(_ song: String, _ artist: String) -> String {
+            String(format: NSLocalizedString("accessibility.songRow", comment: ""), song, artist)
+        }
     }
 }
 

@@ -9,7 +9,7 @@ struct HomeView: View {
 
     var body: some View {
         contentView
-            .navigationTitle(L10n.songsTitle)
+            .navigationTitle(Strings.songsTitle)
             .navigationBarTitleDisplayMode(.large)
             .searchable(
                 text: Binding(
@@ -17,7 +17,7 @@ struct HomeView: View {
                     set: { viewModel.searchText = $0 }
                 ),
                 placement: .navigationBarDrawer(displayMode: .automatic),
-                prompt: L10n.searchPlaceholder
+                prompt: Strings.searchPlaceholder
             )
             .onAppear {
                 viewModel.send(.onAppear)
@@ -65,11 +65,11 @@ struct HomeView: View {
             } else {
                 ContentUnavailableView {
                     Label(
-                        L10n.emptyTitle,
+                        Strings.emptyTitle,
                         systemImage: "music.note"
                     )
                 } description: {
-                    Text(L10n.emptyMessage)
+                    Text(Strings.emptyMessage)
                 }
                 .padding(.top, 100)
             }
@@ -78,7 +78,7 @@ struct HomeView: View {
 
     private var recentlyPlayedSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(L10n.recentlyPlayed)
+            Text(Strings.recentlyPlayed)
                 .font(.headline)
                 .foregroundStyle(.primary)
                 .padding(.horizontal, Spacing.lg)
@@ -129,6 +129,16 @@ struct HomeView: View {
                 }
             }
         }
+    }
+}
+
+extension HomeView {
+    enum Strings {
+        static let songsTitle = NSLocalizedString("songs.title", comment: "")
+        static let searchPlaceholder = NSLocalizedString("songs.search.placeholder", comment: "")
+        static let emptyTitle = NSLocalizedString("songs.empty.title", comment: "")
+        static let emptyMessage = NSLocalizedString("songs.empty.message", comment: "")
+        static let recentlyPlayed = NSLocalizedString("songs.recentlyPlayed", comment: "")
     }
 }
 

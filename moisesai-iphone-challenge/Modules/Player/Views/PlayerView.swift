@@ -45,7 +45,7 @@ struct PlayerView: View {
                     )
                 }
                 .accessibilityLabel(viewModel.song.collectionName)
-                .accessibilityHint(L10n.viewAlbum)
+                .accessibilityHint(Strings.viewAlbum)
             }
 
             ToolbarItem(placement: .topBarTrailing) {
@@ -55,7 +55,7 @@ struct PlayerView: View {
                     Image(systemName: "ellipsis")
                         .foregroundStyle(.white)
                 }
-                .accessibilityLabel(L10n.moreOptions(for: viewModel.song.trackName))
+                .accessibilityLabel(Strings.moreOptions(for: viewModel.song.trackName))
             }
         }
         .onAppear {
@@ -88,7 +88,7 @@ struct PlayerView: View {
         .frame(width: Sizing.playerArtwork, height: Sizing.playerArtwork)
         .clipShape(RoundedRectangle(cornerRadius: Sizing.cornerRadiusLarge))
         .animation(.easeInOut(duration: 0.3), value: viewModel.song.id)
-        .accessibilityLabel(L10n.albumArt(viewModel.song.collectionName))
+        .accessibilityLabel(Strings.albumArt(viewModel.song.collectionName))
     }
 
     private var artworkPlaceholder: some View {
@@ -129,7 +129,7 @@ struct PlayerView: View {
                     .foregroundStyle(viewModel.repeatMode == .off ? Color.secondary : Color.white)
             }
             .animation(.easeInOut(duration: 0.2), value: viewModel.repeatMode)
-            .accessibilityLabel(L10n.repeatMode)
+            .accessibilityLabel(Strings.repeatMode)
             .accessibilityValue(repeatAccessibilityValue)
         }
     }
@@ -144,9 +144,9 @@ struct PlayerView: View {
 
     private var repeatAccessibilityValue: String {
         switch viewModel.repeatMode {
-        case .off: L10n.repeatOff
-        case .one: L10n.repeatOne
-        case .all: L10n.repeatAll
+        case .off: Strings.repeatOff
+        case .one: Strings.repeatOne
+        case .all: Strings.repeatAll
         }
     }
 
@@ -175,7 +175,7 @@ struct PlayerView: View {
                 }
             )
             .tint(.white)
-            .accessibilityLabel(L10n.seekSlider)
+            .accessibilityLabel(Strings.seekSlider)
 
             HStack {
                 Text(viewModel.currentTimeFormatted)
@@ -205,7 +205,7 @@ struct PlayerView: View {
                     .foregroundStyle(.white)
                     .frame(width: Sizing.tapTarget, height: Sizing.tapTarget)
             }
-            .accessibilityLabel(L10n.backward)
+            .accessibilityLabel(Strings.backward)
 
             Button {
                 viewModel.send(.playPause)
@@ -218,7 +218,7 @@ struct PlayerView: View {
                     .clipShape(Circle())
                     .contentTransition(.symbolEffect(.replace))
             }
-            .accessibilityLabel(L10n.playPause)
+            .accessibilityLabel(Strings.playPause)
 
             Button {
                 viewModel.send(.forward)
@@ -228,10 +228,32 @@ struct PlayerView: View {
                     .foregroundStyle(.white)
                     .frame(width: Sizing.tapTarget, height: Sizing.tapTarget)
             }
-            .accessibilityLabel(L10n.forward)
+            .accessibilityLabel(Strings.forward)
         }
     }
 
+}
+
+extension PlayerView {
+    enum Strings {
+        static let viewAlbum = NSLocalizedString("moreOptions.viewAlbum", comment: "")
+        static let seekSlider = NSLocalizedString("accessibility.player.seekSlider", comment: "")
+        static let repeatMode = NSLocalizedString("accessibility.player.repeat", comment: "")
+        static let repeatOff = NSLocalizedString("accessibility.player.repeat.off", comment: "")
+        static let repeatOne = NSLocalizedString("accessibility.player.repeat.one", comment: "")
+        static let repeatAll = NSLocalizedString("accessibility.player.repeat.all", comment: "")
+        static let backward = NSLocalizedString("accessibility.player.backward", comment: "")
+        static let playPause = NSLocalizedString("accessibility.player.playPause", comment: "")
+        static let forward = NSLocalizedString("accessibility.player.forward", comment: "")
+
+        static func moreOptions(for song: String) -> String {
+            String(format: NSLocalizedString("accessibility.songRow.moreOptions", comment: ""), song)
+        }
+
+        static func albumArt(_ album: String) -> String {
+            String(format: NSLocalizedString("accessibility.player.albumArt", comment: ""), album)
+        }
+    }
 }
 
 #Preview {
