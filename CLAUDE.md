@@ -65,6 +65,7 @@ View → ViewModel → UseCase → Repository → Service (Network)
 - `async/await` for all asynchronous work
 - `@MainActor` on ViewModels and Views
 - `Sendable` conformance on all data/domain models
+- **Prefer `actor` over `@unchecked Sendable`** — use Swift actors for thread-safe shared state so the compiler can verify safety at compile time. Avoid `@unchecked Sendable` unless wrapping a type that is provably thread-safe but not marked by Apple (e.g., `ImageCache` uses `actor` instead of `@unchecked Sendable` around `NSCache`)
 - Use `TaskGroup` for parallel fetches where appropriate
 - Cancel tasks in ViewModel `deinit` or `.onDisappear`
 
