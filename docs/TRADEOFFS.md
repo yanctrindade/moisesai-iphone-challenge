@@ -87,6 +87,16 @@
 
 **Why:** The iTunes Search API is read-only with rate limits. There's no user-specific data to sync. Background fetch would only pre-cache popular queries, which adds complexity without clear user benefit.
 
+### Navigation Lives in Views, Not ViewModels
+**What:** Views call `router.push()` directly. ViewModels don't know about navigation.
+
+**Trade-off:** `MockRouter` exists but isn't used in tests because there's nothing to assert — ViewModels don't trigger navigation. Moving `router.push()` into ViewModels (via actions like `.selectSong`) would enable testing "did tapping a song navigate to the player?" but requires injecting the router into every ViewModel, adding coupling between ViewModels and navigation. For 3 screens with straightforward tap-to-navigate flows, keeping navigation in views is simpler. If the app adds conditional routing (auth gates, onboarding flows, deep links), moving navigation to ViewModels becomes worthwhile.
+
+### RouterProtocol vs Routable Pattern
+**What:** Navigation uses `RouterProtocol` with a concrete `Route` enum. Routes don't define their own destination views.
+
+**Trade-off:** A `Routable` protocol with `associatedtype Body: View` where each route owns its destination would be more decoupled — adding a new screen wouldn't require editing `ContentView`'s `navigationDestination` switch. However, `associatedtype` doesn't work directly with `NavigationPath` (requires type erasure), and with only 3 destinations the switch statement is manageable. If the app grows beyond ~8 screens, migrating to `Routable` would be worthwhile.
+
 ### No Deep Linking
 **What:** The app doesn't support opening specific songs or albums via URL schemes.
 

@@ -72,13 +72,17 @@
 
 **Trade-off:** One more level of indirection. Mitigated by clear naming (e.g., `Sizing.playerArtwork` is self-documenting).
 
-## 10. NavigationStack with Typed Route Enum
+## 10. NavigationStack with RouterProtocol
 
-**Decision:** Use `NavigationStack` with `NavigationPath` and a `Route` enum for all navigation.
+**Decision:** Use `NavigationStack` with `NavigationPath`, a `Route` enum, and a `RouterProtocol` for all navigation.
 
-**Why:** Type-safe navigation — every destination is a case in the `Route` enum with associated values. The `Router` class centralizes navigation logic. Views push routes, not destination views.
+**Why:** Type-safe navigation — every destination is a case in the `Route` enum with associated values. The `RouterProtocol` abstracts navigation so it can be mocked in tests. Views depend on the protocol via `@Environment`, not the concrete `Router` class.
+
+**Alternative considered:** Full `Routable` protocol with `associatedtype` where each route defines its own destination view. Rejected for current scope — associated types require type erasure with `NavigationPath` and add complexity that doesn't pay off with 3 screens. Documented as future work if the app grows.
 
 **Alternative considered:** Direct `.navigationDestination` without a router. Rejected because it scatters navigation logic across views and makes deep linking harder.
+
+**Note on navigation ownership:** Currently views call `router.push()` directly (e.g., `router.push(.player(song:playlist:))`). An alternative is moving navigation into ViewModels via actions (e.g., `viewModel.send(.selectSong(song))` → ViewModel calls `router.push()`), which would make navigation testable via `MockRouter`. This was intentionally left in views for simplicity — navigation is a UI concern in this app, and moving it to ViewModels would require injecting the router into every ViewModel. If navigation logic grows complex (conditional routing, deep links, auth gates), moving it to ViewModels would be the right next step.
 
 ## 11. SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated
 
