@@ -36,10 +36,12 @@ struct PlayerView: View {
                         artworkURL: viewModel.song.artworkURL
                     ))
                 } label: {
-                    Text(viewModel.song.collectionName)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
+                    MarqueeText(
+                        text: viewModel.song.collectionName,
+                        font: .system(size: 16, weight: .semibold),
+                        color: .white,
+                        maxWidth: 200
+                    )
                 }
                 .accessibilityLabel(viewModel.song.collectionName)
                 .accessibilityHint(NSLocalizedString("moreOptions.viewAlbum", comment: ""))
