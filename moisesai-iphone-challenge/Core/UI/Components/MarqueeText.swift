@@ -8,6 +8,7 @@ struct MarqueeText: View {
     let uiFont: UIFont
 
     @State private var offset: CGFloat = 0
+    @State private var containerWidth: CGFloat = 0
 
     private let spacing: CGFloat = 40
     private let speed: Double = 30
@@ -31,22 +32,33 @@ struct MarqueeText: View {
         return (text as NSString).size(withAttributes: attributes).width
     }
 
-    var body: some View {
-        let shouldScroll = textWidth > maxWidth
+    /// The width we should compare against: if a finite maxWidth was provided use it,
+    /// otherwise fall back to the measured container width from GeometryReader.
+    private var effectiveWidth: CGFloat {
+        maxWidth.isFinite ? maxWidth : containerWidth
+    }
 
-        Group {
-            if shouldScroll {
-                scrollingContent
-            } else {
-                Text(text)
-                    .font(font)
-                    .foregroundStyle(color)
-                    .lineLimit(1)
+    var body: some View {
+        GeometryReader { geo in
+            let available = min(geo.size.width, maxWidth.isFinite ? maxWidth : geo.size.width)
+            let shouldScroll = textWidth > available
+
+            Group {
+                if shouldScroll {
+                    scrollingContent(width: available)
+                } else {
+                    Text(text)
+                        .font(font)
+                        .foregroundStyle(color)
+                        .lineLimit(1)
+                }
             }
+            .onAppear { containerWidth = geo.size.width }
+            .onChange(of: geo.size.width) { _, new in containerWidth = new }
         }
     }
 
-    private var scrollingContent: some View {
+    private func scrollingContent(width: CGFloat) -> some View {
         let totalWidth = textWidth + spacing
 
         return HStack(spacing: spacing) {
@@ -61,7 +73,7 @@ struct MarqueeText: View {
                 .fixedSize()
         }
         .offset(x: offset)
-        .frame(width: maxWidth, alignment: .leading)
+        .frame(width: width, alignment: .leading)
         .clipped()
         .onAppear {
             startAnimation(totalWidth: totalWidth)
