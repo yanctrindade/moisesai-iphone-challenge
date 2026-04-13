@@ -108,13 +108,11 @@
 
 **Recommended approaches:**
 
-1. **Debug force-offline toggle (built in)** — `NetworkMonitor.forceOffline = true` in debug builds, or set `UserDefaults.standard.set(true, forKey: "debug.forceOffline")` in the scheme's launch arguments. The monitor returns `isConnected: false` regardless of actual network state.
+1. **Network Link Conditioner** — Simulator > Features > Network Link Conditioner. Use "100% Loss" profile.
 
-2. **Network Link Conditioner** — Xcode > Settings > Platforms > ...or Simulator > Features > Network Link Conditioner. Use "100% Loss" profile.
+2. **Disable Wi-Fi on the host Mac** — cleanest way to simulate real offline state without certificate issues.
 
-3. **Disable Wi-Fi on the host Mac** — cleanest way to simulate real offline state without certificate issues.
-
-4. **Mock `NetworkMonitorProtocol` in tests** — inject a mock that returns `isConnected: false`.
+3. **Mock `NetworkMonitorProtocol` in tests** — inject a mock that returns `isConnected: false`.
 
 ## Future Work: Background Audio & Lock Screen Controls
 
