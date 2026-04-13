@@ -2,18 +2,28 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var router = Router()
+    @State private var homeViewModel: HomeViewModel = {
+        let networkService = URLSessionNetworkService()
+        let repository = SongsRepository(networkService: networkService)
+        let searchUseCase = SearchSongsUseCase(repository: repository)
+        let recentlyPlayedUseCase = GetRecentlyPlayedUseCase(repository: repository)
+        return HomeViewModel(
+            searchSongsUseCase: searchUseCase,
+            getRecentlyPlayedUseCase: recentlyPlayedUseCase
+        )
+    }()
 
     var body: some View {
         NavigationStack(path: $router.path) {
-            Text("Home Placeholder")
+            HomeView(viewModel: homeViewModel)
                 .navigationDestination(for: Route.self) { route in
                     switch route {
                     case .home:
-                        Text("Home")
+                        HomeView(viewModel: homeViewModel)
                     case .player:
-                        Text("Player")
+                        Text("Player — Coming Soon")
                     case .album:
-                        Text("Album")
+                        Text("Album — Coming Soon")
                     }
                 }
         }
@@ -23,4 +33,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .preferredColorScheme(.dark)
 }

@@ -3,6 +3,7 @@
 "general.error.title" = "Algo deu errado";
 "general.error.tryAgain" = "Tentar Novamente";
 "general.unknown" = "Desconhecido";
+"general.cancel" = "Cancelar";
 
 // MARK: - Songs Screen
 "songs.title" = "Músicas";
