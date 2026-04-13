@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct PlayerView: View {
     @State var viewModel: PlayerViewModel
@@ -259,6 +260,10 @@ struct PlayerView: View {
         durationMillis: 248000, genre: "Electronic",
         releaseDate: "2013-05-17"
     )
+    let container = try! ModelContainer(
+        for: CachedSong.self, RecentlyPlayedSong.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
 
     NavigationStack {
         PlayerView(
@@ -267,7 +272,7 @@ struct PlayerView: View {
                 playlist: [previewSong],
                 audioPlayer: AudioPlayerService(),
                 saveRecentlyPlayedUseCase: SaveRecentlyPlayedUseCase(
-                    repository: SongsRepository(networkService: URLSessionNetworkService())
+                    repository: SongsRepository(networkService: URLSessionNetworkService(), modelContainer: container)
                 )
             )
         )

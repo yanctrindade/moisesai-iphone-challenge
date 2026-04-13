@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct HomeView: View {
     @State var viewModel: HomeViewModel
@@ -132,8 +133,12 @@ struct HomeView: View {
 }
 
 #Preview {
+    let container = try! ModelContainer(
+        for: CachedSong.self, RecentlyPlayedSong.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
     let networkService = URLSessionNetworkService()
-    let repository = SongsRepository(networkService: networkService)
+    let repository = SongsRepository(networkService: networkService, modelContainer: container)
     let searchUseCase = SearchSongsUseCase(repository: repository)
     let recentlyPlayedUseCase = GetRecentlyPlayedUseCase(repository: repository)
 

@@ -16,8 +16,7 @@ struct MoreOptionsSheetSnapshotTests {
 
         let view = MoreOptionsSheet(
             song: song,
-            onViewAlbum: {},
-            onShare: {}
+            onViewAlbum: {}
         )
         .frame(width: 393, height: 250)
         .background(Color(hex: 0x262626, opacity: 0.8))
