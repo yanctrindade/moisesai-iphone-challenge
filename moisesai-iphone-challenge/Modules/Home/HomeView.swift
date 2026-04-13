@@ -9,27 +9,15 @@ struct HomeView: View {
     var body: some View {
         contentView
             .navigationTitle(NSLocalizedString("songs.title", comment: ""))
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
             .searchable(
                 text: Binding(
                     get: { viewModel.searchText },
                     set: { viewModel.searchText = $0 }
                 ),
-                isPresented: $isSearchActive,
+                placement: .navigationBarDrawer(displayMode: .always),
                 prompt: NSLocalizedString("songs.search.placeholder", comment: "")
             )
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    if !isSearchActive {
-                        Button {
-                            isSearchActive = true
-                        } label: {
-                            Image(systemName: "magnifyingglass")
-                        }
-                        .accessibilityLabel(NSLocalizedString("accessibility.search", comment: ""))
-                    }
-                }
-            }
             .onAppear {
                 viewModel.send(.onAppear)
             }
