@@ -4,6 +4,8 @@ struct PlayerView: View {
     @State var viewModel: PlayerViewModel
     @Environment(Router.self) private var router
     @State private var showMoreOptions = false
+    @State private var sliderValue: Double = 0
+    @State private var isDragging = false
 
     var body: some View {
         ZStack {
@@ -69,7 +71,7 @@ struct PlayerView: View {
                     ))
                 },
                 onShare: {
-                    sharesong(viewModel.song)
+                    shareSong(viewModel.song)
                 }
             )
         }
@@ -78,24 +80,39 @@ struct PlayerView: View {
     // MARK: - Artwork
 
     private var artworkView: some View {
-        AsyncImage(url: viewModel.song.artworkURLHighRes) { image in
-            image
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-        } placeholder: {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.tertiarySystemBackground))
-                .overlay {
-                    Image(systemName: "music.note")
-                        .font(.system(size: 48))
-                        .foregroundStyle(.secondary)
-                }
+        AsyncImage(url: viewModel.song.artworkURLHighRes) { phase in
+            switch phase {
+            case .success(let image):
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .transition(.opacity.animation(.easeInOut(duration: 0.3)))
+            case .failure:
+                artworkPlaceholder
+            case .empty:
+                artworkPlaceholder
+                    .overlay { ProgressView().tint(.secondary) }
+            @unknown default:
+                artworkPlaceholder
+            }
         }
+        .id(viewModel.song.id)
         .frame(width: 264, height: 264)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .animation(.easeInOut(duration: 0.3), value: viewModel.song.id)
         .accessibilityLabel(
             String(format: NSLocalizedString("accessibility.player.albumArt", comment: ""), viewModel.song.collectionName)
         )
+    }
+
+    private var artworkPlaceholder: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(Color(.tertiarySystemBackground))
+            .overlay {
+                Image(systemName: "music.note")
+                    .font(.system(size: 48))
+                    .foregroundStyle(.secondary)
+            }
     }
 
     // MARK: - Song Info
@@ -107,12 +124,14 @@ struct PlayerView: View {
                     .font(.system(size: 32, weight: .semibold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
+                    .id(viewModel.song.id)
 
                 Text(viewModel.song.artistName)
                     .font(.system(size: 16, weight: .medium))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
+            .animation(.easeInOut(duration: 0.3), value: viewModel.song.id)
 
             Spacer()
 
@@ -123,6 +142,7 @@ struct PlayerView: View {
                     .font(.title3)
                     .foregroundStyle(viewModel.repeatMode == .off ? Color.secondary : Color.white)
             }
+            .animation(.easeInOut(duration: 0.2), value: viewModel.repeatMode)
             .accessibilityLabel(NSLocalizedString("accessibility.player.repeat", comment: ""))
             .accessibilityValue(repeatAccessibilityValue)
         }
@@ -150,10 +170,23 @@ struct PlayerView: View {
         VStack(spacing: 8) {
             Slider(
                 value: Binding(
-                    get: { viewModel.currentTime },
-                    set: { viewModel.send(.seek($0)) }
+                    get: { isDragging ? sliderValue : viewModel.currentTime },
+                    set: { newValue in
+                        sliderValue = newValue
+                        if !isDragging {
+                            isDragging = true
+                            viewModel.send(.seekStarted)
+                        }
+                        viewModel.send(.seekChanged(newValue))
+                    }
                 ),
-                in: 0...max(viewModel.duration, 1)
+                in: 0...max(viewModel.duration, 1),
+                onEditingChanged: { editing in
+                    if !editing {
+                        isDragging = false
+                        viewModel.send(.seekEnded(sliderValue))
+                    }
+                }
             )
             .tint(.white)
             .accessibilityLabel(NSLocalizedString("accessibility.player.seekSlider", comment: ""))
@@ -197,6 +230,7 @@ struct PlayerView: View {
                     .frame(width: 64, height: 64)
                     .background(Color(.tertiarySystemBackground))
                     .clipShape(Circle())
+                    .contentTransition(.symbolEffect(.replace))
             }
             .accessibilityLabel(NSLocalizedString("accessibility.player.playPause", comment: ""))
 
@@ -214,7 +248,7 @@ struct PlayerView: View {
 
     // MARK: - Helpers
 
-    private func sharesong(_ song: Song) {
+    private func shareSong(_ song: Song) {
         var items: [Any] = ["\(song.trackName) - \(song.artistName)"]
         if let url = song.previewURL {
             items.append(url)

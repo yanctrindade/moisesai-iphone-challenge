@@ -22,7 +22,9 @@ final class PlayerViewModel {
         case playPause
         case forward
         case backward
-        case seek(TimeInterval)
+        case seekStarted
+        case seekChanged(TimeInterval)
+        case seekEnded(TimeInterval)
         case toggleRepeat
     }
 
@@ -40,8 +42,9 @@ final class PlayerViewModel {
     private(set) var currentTime: TimeInterval = 0
     private(set) var duration: TimeInterval = 0
     private(set) var repeatMode: RepeatMode = .off
-
     private(set) var song: Song
+    private(set) var isSeeking = false
+
     private let playlist: [Song]
     private let audioPlayer: AudioPlayerServiceProtocol
     private let saveRecentlyPlayedUseCase: SaveRecentlyPlayedUseCaseProtocol
@@ -99,7 +102,12 @@ final class PlayerViewModel {
             skipForward()
         case .backward:
             skipBackward()
-        case .seek(let time):
+        case .seekStarted:
+            isSeeking = true
+        case .seekChanged(let time):
+            currentTime = time
+        case .seekEnded(let time):
+            isSeeking = false
             audioPlayer.seek(to: time)
             currentTime = time
         case .toggleRepeat:
@@ -117,10 +125,17 @@ final class PlayerViewModel {
 
         audioPlayer.play(url: previewURL)
         state = .playing
+        setupObservers()
 
+        Task {
+            await saveRecentlyPlayedUseCase.execute(song)
+        }
+    }
+
+    private func setupObservers() {
         audioPlayer.addPeriodicTimeObserver { [weak self] time in
             Task { @MainActor in
-                guard let self else { return }
+                guard let self, !self.isSeeking else { return }
                 self.currentTime = time
                 let dur = self.audioPlayer.duration
                 if dur.isFinite && dur > 0 {
@@ -134,10 +149,6 @@ final class PlayerViewModel {
                 guard let self else { return }
                 self.handlePlaybackEnd()
             }
-        }
-
-        Task {
-            await saveRecentlyPlayedUseCase.execute(song)
         }
     }
 
@@ -156,14 +167,13 @@ final class PlayerViewModel {
 
         var nextIndex = currentIndex + 1
         if nextIndex >= playlist.count {
-            nextIndex = 0 // wrap for repeat all
+            nextIndex = 0
         }
 
         navigateToSong(at: nextIndex)
     }
 
     private func skipBackward() {
-        // If more than 3 seconds in, restart current song
         if currentTime > 3 {
             audioPlayer.seek(to: 0)
             currentTime = 0
@@ -174,7 +184,7 @@ final class PlayerViewModel {
 
         var prevIndex = currentIndex - 1
         if prevIndex < 0 {
-            prevIndex = playlist.count - 1 // wrap for repeat all
+            prevIndex = playlist.count - 1
         }
 
         navigateToSong(at: prevIndex)
@@ -187,28 +197,12 @@ final class PlayerViewModel {
 
         guard let previewURL = nextSong.previewURL else { return }
 
-        audioPlayer.play(url: previewURL)
-        state = .playing
         currentTime = 0
         duration = 0
 
-        audioPlayer.addPeriodicTimeObserver { [weak self] time in
-            Task { @MainActor in
-                guard let self else { return }
-                self.currentTime = time
-                let dur = self.audioPlayer.duration
-                if dur.isFinite && dur > 0 {
-                    self.duration = dur
-                }
-            }
-        }
-
-        audioPlayer.addPlaybackEndObserver { [weak self] in
-            Task { @MainActor in
-                guard let self else { return }
-                self.handlePlaybackEnd()
-            }
-        }
+        audioPlayer.play(url: previewURL)
+        state = .playing
+        setupObservers()
 
         Task {
             await saveRecentlyPlayedUseCase.execute(nextSong)

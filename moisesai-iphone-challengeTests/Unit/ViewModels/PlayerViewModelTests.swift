@@ -129,14 +129,19 @@ struct PlayerViewModelTests {
 
     // MARK: - Seek
 
-    @Test func test_send_seek_seeksToTime() {
+    @Test func test_send_seek_seeksToTimeOnEnd() {
         let (sut, audioPlayer, _) = makeSUT()
 
-        sut.send(.seek(15.0))
+        sut.send(.seekStarted)
+        sut.send(.seekChanged(15.0))
+        #expect(sut.isSeeking == true)
+        #expect(sut.currentTime == 15.0)
+        #expect(audioPlayer.seekCallCount == 0) // not yet committed
 
+        sut.send(.seekEnded(15.0))
+        #expect(sut.isSeeking == false)
         #expect(audioPlayer.seekCallCount == 1)
         #expect(audioPlayer.lastSeekTime == 15.0)
-        #expect(sut.currentTime == 15.0)
     }
 
     // MARK: - Repeat
@@ -160,7 +165,7 @@ struct PlayerViewModelTests {
 
     @Test func test_currentTimeFormatted_formatsCorrectly() {
         let (sut, _, _) = makeSUT()
-        sut.send(.seek(86)) // 1:26
+        sut.send(.seekEnded(86)) // 1:26
 
         #expect(sut.currentTimeFormatted == "1:26")
     }
