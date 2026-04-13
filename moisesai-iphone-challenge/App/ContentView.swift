@@ -5,13 +5,8 @@ struct ContentView: View {
     @State private var router = Router()
     @Environment(\.modelContext) private var modelContext
     @Environment(NetworkMonitor.self) private var networkMonitor
-    @State private var isBannerDismissed = false
 
     private let networkService = URLSessionNetworkService()
-
-    private var showBanner: Bool {
-        !networkMonitor.isConnected && !isBannerDismissed
-    }
 
     var body: some View {
         NavigationStack(path: $router.path) {
@@ -28,21 +23,7 @@ struct ContentView: View {
                 }
         }
         .environment(router)
-        .overlay(alignment: .bottom) {
-            OfflineBanner(isVisible: showBanner) {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    isBannerDismissed = true
-                }
-            }
-            .padding(.bottom, Spacing.sm)
-            .animation(.easeInOut(duration: 0.3), value: showBanner)
-        }
-        .onChange(of: networkMonitor.isConnected) { _, connected in
-            // Reset dismissal when connection state changes
-            if !connected {
-                isBannerDismissed = false
-            }
-        }
+        .offlineBanner()
     }
 
     private func makeHomeViewModel() -> HomeViewModel {
@@ -75,7 +56,8 @@ struct ContentView: View {
                 song: song,
                 playlist: playlist,
                 audioPlayer: AudioPlayerService.shared,
-                saveRecentlyPlayedUseCase: saveRecentlyPlayedUseCase
+                saveRecentlyPlayedUseCase: saveRecentlyPlayedUseCase,
+                networkMonitor: networkMonitor
             )
         )
     }

@@ -7,7 +7,18 @@ private let logger = Logger(subsystem: "com.yantrindade.moisesai", category: "Ne
 @Observable
 @MainActor
 final class NetworkMonitor: NetworkMonitorProtocol {
-    private(set) var isConnected: Bool = true
+    /// Debug-only override: set to `true` to simulate offline state.
+    /// Toggle via UserDefaults key "debug.forceOffline" or set `forceOffline` directly in debug builds.
+    var forceOffline: Bool = false
+
+    private var realIsConnected: Bool = true
+
+    var isConnected: Bool {
+        #if DEBUG
+        if forceOffline { return false }
+        #endif
+        return realIsConnected
+    }
 
     private let monitor: NWPathMonitor
     private let queue: DispatchQueue
@@ -16,6 +27,9 @@ final class NetworkMonitor: NetworkMonitorProtocol {
     init() {
         self.monitor = NWPathMonitor()
         self.queue = DispatchQueue(label: "com.yantrindade.moisesai.networkmonitor")
+        #if DEBUG
+        self.forceOffline = UserDefaults.standard.bool(forKey: "debug.forceOffline")
+        #endif
     }
 
     func start() {
@@ -26,9 +40,9 @@ final class NetworkMonitor: NetworkMonitorProtocol {
             let connected = path.status == .satisfied
             Task { @MainActor in
                 guard let self else { return }
-                if self.isConnected != connected {
+                if self.realIsConnected != connected {
                     logger.info("Network status changed: \(connected ? "connected" : "disconnected")")
-                    self.isConnected = connected
+                    self.realIsConnected = connected
                 }
             }
         }

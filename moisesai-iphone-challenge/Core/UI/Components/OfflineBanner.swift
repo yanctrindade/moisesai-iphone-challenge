@@ -1,6 +1,8 @@
 import SwiftUI
 
-struct OfflineBanner: View {
+// MARK: - View
+
+private struct OfflineBanner: View {
     let isVisible: Bool
     var onDismiss: (() -> Void)?
 
@@ -43,6 +45,43 @@ struct OfflineBanner: View {
     }
 }
 
+// MARK: - Modifier
+
+private struct OfflineBannerModifier: ViewModifier {
+    @Environment(NetworkMonitor.self) private var networkMonitor
+    @State private var isDismissed = false
+
+    private var showBanner: Bool {
+        !networkMonitor.isConnected && !isDismissed
+    }
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(alignment: .bottom) {
+                OfflineBanner(isVisible: showBanner) {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        isDismissed = true
+                    }
+                }
+                .padding(.bottom, Spacing.sm)
+                .animation(.easeInOut(duration: 0.3), value: showBanner)
+            }
+            .onChange(of: networkMonitor.isConnected) { _, connected in
+                if !connected {
+                    isDismissed = false
+                }
+            }
+    }
+}
+
+extension View {
+    func offlineBanner() -> some View {
+        modifier(OfflineBannerModifier())
+    }
+}
+
+// MARK: - Strings
+
 extension OfflineBanner {
     enum Strings {
         static let offlineMessage = NSLocalizedString("offline.banner.message", comment: "")
@@ -51,10 +90,12 @@ extension OfflineBanner {
 }
 
 #Preview {
-    VStack {
-        OfflineBanner(isVisible: true, onDismiss: {})
-        Spacer()
-    }
-    .background(.black)
-    .preferredColorScheme(.dark)
+    Color.black
+        .ignoresSafeArea()
+        .offlineBanner()
+        .environment({
+            let m = NetworkMonitor()
+            return m
+        }())
+        .preferredColorScheme(.dark)
 }

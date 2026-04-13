@@ -106,11 +106,15 @@ struct PlayerView: View {
     private var songInfoView: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text(viewModel.song.trackName)
-                    .font(Typography.playerSongTitle)
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-                    .id(viewModel.song.id)
+                MarqueeText(
+                    text: viewModel.song.trackName,
+                    font: Typography.playerSongTitle,
+                    color: .white,
+                    maxWidth: 280,
+                    uiFont: .systemFont(ofSize: 32, weight: .semibold)
+                )
+                .frame(height: 40)
+                .id(viewModel.song.id)
 
                 Text(viewModel.song.artistName)
                     .font(Typography.playerArtistName)

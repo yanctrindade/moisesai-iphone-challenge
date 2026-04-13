@@ -102,6 +102,20 @@
 
 **Why:** Not in requirements. The `Route` enum and `Router` pattern are ready for deep linking if needed — just parse a URL into a `Route` and push it.
 
+## Testing Offline Mode
+
+**Don't use simulator airplane mode** — it can cause certificate/trust issues because the simulator shares the Mac's network stack and toggling airplane mode at that level interferes with TLS validation.
+
+**Recommended approaches:**
+
+1. **Debug force-offline toggle (built in)** — `NetworkMonitor.forceOffline = true` in debug builds, or set `UserDefaults.standard.set(true, forKey: "debug.forceOffline")` in the scheme's launch arguments. The monitor returns `isConnected: false` regardless of actual network state.
+
+2. **Network Link Conditioner** — Xcode > Settings > Platforms > ...or Simulator > Features > Network Link Conditioner. Use "100% Loss" profile.
+
+3. **Disable Wi-Fi on the host Mac** — cleanest way to simulate real offline state without certificate issues.
+
+4. **Mock `NetworkMonitorProtocol` in tests** — inject a mock that returns `isConnected: false`.
+
 ## Future Work: Background Audio & Lock Screen Controls
 
 **Why deferred:** Significant scope (2 new services, Info.plist config, iOS entitlements, lock screen testing) that would expand the challenge timeline. The current app stops playback when leaving the player screen — a deliberate choice to avoid partial background audio support.

@@ -13,6 +13,7 @@ final class PlayerViewModel {
         case idle
         case playing
         case paused
+        case offlineUnavailable
     }
 
     // MARK: - Action
@@ -50,6 +51,7 @@ final class PlayerViewModel {
     private let audioPlayer: AudioPlayerServiceProtocol
     private let saveRecentlyPlayedUseCase: SaveRecentlyPlayedUseCaseProtocol
     private let audioCache: AudioCacheServiceProtocol
+    private let networkMonitor: NetworkMonitorProtocol?
 
     private var currentIndex: Int
 
@@ -86,13 +88,15 @@ final class PlayerViewModel {
         playlist: [Song],
         audioPlayer: AudioPlayerServiceProtocol,
         saveRecentlyPlayedUseCase: SaveRecentlyPlayedUseCaseProtocol,
-        audioCache: AudioCacheServiceProtocol = AudioCacheService.shared
+        audioCache: AudioCacheServiceProtocol = AudioCacheService.shared,
+        networkMonitor: NetworkMonitorProtocol? = nil
     ) {
         self.song = song
         self.playlist = playlist
         self.audioPlayer = audioPlayer
         self.saveRecentlyPlayedUseCase = saveRecentlyPlayedUseCase
         self.audioCache = audioCache
+        self.networkMonitor = networkMonitor
         self.currentIndex = playlist.firstIndex(of: song) ?? 0
     }
 
@@ -137,10 +141,15 @@ final class PlayerViewModel {
     private func startPlayback() {
         guard let previewURL = song.previewURL else {
             logger.warning("No preview URL for song: \(self.song.trackName)")
+            state = .offlineUnavailable
             return
         }
 
-        playWithCache(previewURL: previewURL, trackId: song.id)
+        guard playWithCache(previewURL: previewURL, trackId: song.id) else {
+            state = .offlineUnavailable
+            return
+        }
+
         state = .playing
         setupObservers()
 
@@ -149,14 +158,22 @@ final class PlayerViewModel {
         }
     }
 
-    private func playWithCache(previewURL: URL, trackId: Int) {
-        // If cached locally, play from disk
+    /// Returns true if playback started successfully, false if offline and no cache available.
+    @discardableResult
+    private func playWithCache(previewURL: URL, trackId: Int) -> Bool {
+        // If cached locally, always play from disk
         if let localURL = audioCache.localURL(for: trackId) {
             audioPlayer.play(url: localURL)
-            return
+            return true
         }
 
-        // Otherwise stream and cache in background
+        // No cache — only stream if we have network
+        let isOffline = networkMonitor?.isConnected == false
+        if isOffline {
+            logger.warning("Cannot play trackId \(trackId): offline and no cache")
+            return false
+        }
+
         audioPlayer.play(url: previewURL)
 
         Task {
@@ -166,6 +183,8 @@ final class PlayerViewModel {
                 logger.warning("Failed to cache audio for trackId \(trackId): \(error.localizedDescription)")
             }
         }
+
+        return true
     }
 
     private func setupObservers() {
@@ -192,6 +211,7 @@ final class PlayerViewModel {
     }
 
     private func togglePlayPause() {
+        guard state != .offlineUnavailable else { return }
         if audioPlayer.isPlaying {
             audioPlayer.pause()
             state = .paused
@@ -234,12 +254,19 @@ final class PlayerViewModel {
         let nextSong = playlist[index]
         song = nextSong
 
-        guard let previewURL = nextSong.previewURL else { return }
+        guard let previewURL = nextSong.previewURL else {
+            state = .offlineUnavailable
+            return
+        }
 
         currentTime = 0
         duration = 0
 
-        playWithCache(previewURL: previewURL, trackId: nextSong.id)
+        guard playWithCache(previewURL: previewURL, trackId: nextSong.id) else {
+            state = .offlineUnavailable
+            return
+        }
+
         state = .playing
         setupObservers()
 
