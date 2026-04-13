@@ -15,7 +15,7 @@ struct HomeView: View {
                     get: { viewModel.searchText },
                     set: { viewModel.searchText = $0 }
                 ),
-                placement: .navigationBarDrawer(displayMode: .always),
+                placement: .navigationBarDrawer(displayMode: .automatic),
                 prompt: NSLocalizedString("songs.search.placeholder", comment: "")
             )
             .onAppear {
