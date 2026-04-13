@@ -3,6 +3,8 @@ import SwiftData
 
 @Model
 final class RecentlyPlayedSong {
+    #Index<RecentlyPlayedSong>([\.trackId], [\.playedAt])
+
     var trackId: Int
     var trackName: String
     var artistName: String

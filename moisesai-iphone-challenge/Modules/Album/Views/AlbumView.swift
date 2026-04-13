@@ -10,7 +10,7 @@ struct AlbumView: View {
 
             switch viewModel.state {
             case .loading:
-                LoadingView(message: NSLocalizedString("general.loading", comment: ""))
+                SkeletonListView(count: 6)
             case .loaded(let songs):
                 albumContent(songs)
             case .error(let message):
@@ -43,23 +43,14 @@ struct AlbumView: View {
 
     private var albumHeader: some View {
         VStack(spacing: 8) {
-            AsyncImage(url: viewModel.artworkURL) { phase in
-                switch phase {
-                case .success(let image):
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                case .failure, .empty:
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(.tertiarySystemBackground))
-                        .overlay {
-                            Image(systemName: "music.note")
-                                .font(.system(size: 32))
-                                .foregroundStyle(.secondary)
-                        }
-                @unknown default:
-                    EmptyView()
-                }
+            CachedAsyncImage(url: viewModel.artworkURL) {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color(.tertiarySystemBackground))
+                    .overlay {
+                        Image(systemName: "music.note")
+                            .font(.system(size: 32))
+                            .foregroundStyle(.secondary)
+                    }
             }
             .frame(width: 120, height: 120)
             .clipShape(RoundedRectangle(cornerRadius: 10))

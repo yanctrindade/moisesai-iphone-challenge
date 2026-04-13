@@ -15,11 +15,7 @@ struct SongRowView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            AsyncImage(url: song.artworkURL) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
+            CachedAsyncImage(url: song.artworkURL) {
                 RoundedRectangle(cornerRadius: 6)
                     .fill(Color(.tertiarySystemBackground))
                     .overlay {

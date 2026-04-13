@@ -48,7 +48,7 @@ struct HomeView: View {
                 emptySearchView
             }
         case .loading:
-            LoadingView(message: NSLocalizedString("general.loading", comment: ""))
+            SkeletonListView()
         case .loaded(let songs):
             songListView(songs)
         case .error(let message):

@@ -83,21 +83,8 @@ struct PlayerView: View {
     // MARK: - Artwork
 
     private var artworkView: some View {
-        AsyncImage(url: viewModel.song.artworkURLHighRes) { phase in
-            switch phase {
-            case .success(let image):
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .transition(.opacity.animation(.easeInOut(duration: 0.3)))
-            case .failure:
-                artworkPlaceholder
-            case .empty:
-                artworkPlaceholder
-                    .overlay { ProgressView().tint(.secondary) }
-            @unknown default:
-                artworkPlaceholder
-            }
+        CachedAsyncImage(url: viewModel.song.artworkURLHighRes) {
+            artworkPlaceholder
         }
         .id(viewModel.song.id)
         .frame(width: 264, height: 264)
