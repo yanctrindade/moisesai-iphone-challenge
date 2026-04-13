@@ -71,6 +71,7 @@ final class AlbumViewModel {
             guard !hasLoaded, !isFetching else { return }
             Task { await fetchSongs() }
         case .retry:
+            guard !isFetching else { return }
             Task { await fetchSongs() }
         }
     }
