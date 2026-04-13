@@ -87,6 +87,11 @@
 
 **Why:** The iTunes Search API is read-only with rate limits. There's no user-specific data to sync. Background fetch would only pre-cache popular queries, which adds complexity without clear user benefit.
 
+### RouterProtocol vs Routable Pattern
+**What:** Navigation uses `RouterProtocol` with a concrete `Route` enum. Routes don't define their own destination views.
+
+**Trade-off:** A `Routable` protocol with `associatedtype Body: View` where each route owns its destination would be more decoupled — adding a new screen wouldn't require editing `ContentView`'s `navigationDestination` switch. However, `associatedtype` doesn't work directly with `NavigationPath` (requires type erasure), and with only 3 destinations the switch statement is manageable. If the app grows beyond ~8 screens, migrating to `Routable` would be worthwhile.
+
 ### No Deep Linking
 **What:** The app doesn't support opening specific songs or albums via URL schemes.
 
