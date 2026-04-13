@@ -22,8 +22,8 @@ struct SplashView: View {
                     .init(color: Color(hex: 0x000000), location: 0.8),
                     .init(color: Color(hex: 0x0086A0), location: 1.0)
                 ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+                startPoint: UnitPoint(x: 0.18, y: 0.0),
+                endPoint: UnitPoint(x: 0.82, y: 1.0)
             )
             .ignoresSafeArea()
 
@@ -34,15 +34,17 @@ struct SplashView: View {
                 .opacity(iconOpacity)
                 .accessibilityHidden(true)
         }
-        .onAppear {
+        .task {
             withAnimation(.easeIn(duration: 0.5)) {
                 iconOpacity = 1
             }
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                withAnimation(.easeInOut(duration: 0.4)) {
-                    isActive = true
-                }
+            try? await Task.sleep(for: .seconds(2.5))
+
+            guard !Task.isCancelled else { return }
+
+            withAnimation(.easeInOut(duration: 0.4)) {
+                isActive = true
             }
         }
     }
