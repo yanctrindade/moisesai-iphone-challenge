@@ -1,6 +1,13 @@
 import SwiftUI
 
 struct SplashView: View {
+    private enum Constants {
+        static let iconSize: CGFloat = 100
+        static let fadeInDuration: Double = 0.5
+        static let holdDuration: Double = 2.0
+        static let fadeOutDuration: Double = 0.4
+    }
+
     @State private var isActive = false
     @State private var iconOpacity: Double = 0
 
@@ -30,20 +37,20 @@ struct SplashView: View {
             Image("SplashIcon")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 100, height: 100)
+                .frame(width: Constants.iconSize, height: Constants.iconSize)
                 .opacity(iconOpacity)
                 .accessibilityHidden(true)
         }
         .task {
-            withAnimation(.easeIn(duration: 0.5)) {
+            withAnimation(.easeIn(duration: Constants.fadeInDuration)) {
                 iconOpacity = 1
             }
 
-            try? await Task.sleep(for: .seconds(2.5))
+            try? await Task.sleep(for: .seconds(Constants.fadeInDuration + Constants.holdDuration))
 
             guard !Task.isCancelled else { return }
 
-            withAnimation(.easeInOut(duration: 0.4)) {
+            withAnimation(.easeInOut(duration: Constants.fadeOutDuration)) {
                 isActive = true
             }
         }
@@ -52,4 +59,5 @@ struct SplashView: View {
 
 #Preview {
     SplashView()
+        .preferredColorScheme(.dark)
 }
