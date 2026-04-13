@@ -11,7 +11,8 @@ import SwiftUI
 struct moisesai_iphone_challengeApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SplashView()
+                .preferredColorScheme(.dark)
         }
     }
 }
