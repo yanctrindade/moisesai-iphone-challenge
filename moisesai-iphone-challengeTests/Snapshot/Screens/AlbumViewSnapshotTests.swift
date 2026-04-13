@@ -52,6 +52,30 @@ struct AlbumViewSnapshotTests {
         assertSnapshot(of: vc, as: .image(size: deviceSize))
     }
 
+    @Test func test_albumView_empty() async throws {
+        let useCase = MockFetchAlbumSongsUseCase()
+        useCase.executeResult = []
+
+        let vm = AlbumViewModel(
+            collectionId: 100,
+            collectionName: "Empty Album",
+            artworkURL: nil,
+            fetchAlbumSongsUseCase: useCase
+        )
+
+        vm.send(.onAppear)
+        try await Task.sleep(for: .milliseconds(100))
+
+        let view = NavigationStack {
+            AlbumView(viewModel: vm)
+        }
+        .environment(Router())
+        .preferredColorScheme(.dark)
+
+        let vc = UIHostingController(rootView: view)
+        assertSnapshot(of: vc, as: .image(size: deviceSize))
+    }
+
     @Test func test_albumView_error() async throws {
         let useCase = MockFetchAlbumSongsUseCase()
         useCase.executeError = NetworkError.noConnection

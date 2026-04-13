@@ -107,7 +107,21 @@
 
 **Alternative considered:** Singleton access pattern (`NetworkService.shared`). Rejected because it hides dependencies and breaks testability.
 
-## 13. Seek Slider — Commit on Release
+## 13. Search UX: Immediate Loading State During Debounce
+
+**Decision:** When the user types in the search bar, the state immediately switches to `.loading` (skeleton) unless there are already loaded results to show.
+
+**Why:** Without this, if the previous search returned empty (`state = .idle`), the user would see "No results" during the 500ms debounce window while typing the next query — confusing UX. Loading skeleton is correct feedback that a new search is in progress. If previous results are still loaded, we keep them visible to avoid flicker while new results load.
+
+**Trade-off:** Shows skeleton briefly for every keystroke after a null/empty state. Acceptable because skeleton is more honest than stale "no results" text.
+
+## 14. Empty States per Screen
+
+**Decision:** Every screen has an explicit empty state via `ContentUnavailableView` instead of showing blank content.
+
+**Why:** Users should never see a blank screen. Album with no tracks, search with no matches, home with no recently played — all have dedicated `ContentUnavailableView` with icon + title + message. Snapshot-tested to prevent regressions.
+
+## 15. Seek Slider — Commit on Release
 
 **Decision:** The player seek slider only calls `audioPlayer.seek()` on drag end, not during drag.
 
