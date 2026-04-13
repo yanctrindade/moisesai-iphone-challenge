@@ -48,13 +48,11 @@ struct ContentView: View {
     private func makePlayerView(song: Song, playlist: [Song]) -> PlayerView {
         let repository = SongsRepository(networkService: networkService)
         let saveRecentlyPlayedUseCase = SaveRecentlyPlayedUseCase(repository: repository)
-        let audioPlayer = AudioPlayerService()
-
         return PlayerView(
             viewModel: PlayerViewModel(
                 song: song,
                 playlist: playlist,
-                audioPlayer: audioPlayer,
+                audioPlayer: AudioPlayerService.shared,
                 saveRecentlyPlayedUseCase: saveRecentlyPlayedUseCase
             )
         )
