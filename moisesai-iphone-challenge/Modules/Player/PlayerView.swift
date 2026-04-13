@@ -3,6 +3,7 @@ import SwiftUI
 struct PlayerView: View {
     @State var viewModel: PlayerViewModel
     @Environment(Router.self) private var router
+    @State private var showMoreOptions = false
 
     var body: some View {
         ZStack {
@@ -43,22 +44,8 @@ struct PlayerView: View {
             }
 
             ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    Button {
-                        router.push(.album(
-                            collectionId: viewModel.song.collectionId,
-                            collectionName: viewModel.song.collectionName,
-                            artworkURL: viewModel.song.artworkURL
-                        ))
-                    } label: {
-                        Label(NSLocalizedString("moreOptions.viewAlbum", comment: ""), systemImage: "music.note.list")
-                    }
-
-                    Button {
-                        sharesong(viewModel.song)
-                    } label: {
-                        Label(NSLocalizedString("moreOptions.share", comment: ""), systemImage: "square.and.arrow.up")
-                    }
+                Button {
+                    showMoreOptions = true
                 } label: {
                     Image(systemName: "ellipsis")
                         .foregroundStyle(.white)
@@ -70,6 +57,21 @@ struct PlayerView: View {
         }
         .onAppear {
             viewModel.send(.onAppear)
+        }
+        .sheet(isPresented: $showMoreOptions) {
+            MoreOptionsSheet(
+                song: viewModel.song,
+                onViewAlbum: {
+                    router.push(.album(
+                        collectionId: viewModel.song.collectionId,
+                        collectionName: viewModel.song.collectionName,
+                        artworkURL: viewModel.song.artworkURL
+                    ))
+                },
+                onShare: {
+                    sharesong(viewModel.song)
+                }
+            )
         }
     }
 
