@@ -7,6 +7,7 @@
 
 // MARK: - Offline
 "offline.banner.message" = "You're offline. Playing cached songs only.";
+"general.dismiss" = "Dismiss";
 
 // MARK: - Songs Screen
 "songs.title" = "Songs";

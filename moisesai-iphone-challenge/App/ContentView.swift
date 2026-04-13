@@ -5,8 +5,13 @@ struct ContentView: View {
     @State private var router = Router()
     @Environment(\.modelContext) private var modelContext
     @Environment(NetworkMonitor.self) private var networkMonitor
+    @State private var isBannerDismissed = false
 
     private let networkService = URLSessionNetworkService()
+
+    private var showBanner: Bool {
+        !networkMonitor.isConnected && !isBannerDismissed
+    }
 
     var body: some View {
         NavigationStack(path: $router.path) {
@@ -23,9 +28,20 @@ struct ContentView: View {
                 }
         }
         .environment(router)
-        .safeAreaInset(edge: .top, spacing: 0) {
-            OfflineBanner(isVisible: !networkMonitor.isConnected)
-                .animation(.easeInOut(duration: 0.3), value: networkMonitor.isConnected)
+        .overlay(alignment: .bottom) {
+            OfflineBanner(isVisible: showBanner) {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    isBannerDismissed = true
+                }
+            }
+            .padding(.bottom, Spacing.sm)
+            .animation(.easeInOut(duration: 0.3), value: showBanner)
+        }
+        .onChange(of: networkMonitor.isConnected) { _, connected in
+            // Reset dismissal when connection state changes
+            if !connected {
+                isBannerDismissed = false
+            }
         }
     }
 

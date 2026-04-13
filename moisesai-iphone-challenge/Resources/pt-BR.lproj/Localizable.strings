@@ -7,6 +7,7 @@
 
 // MARK: - Offline
 "offline.banner.message" = "Você está offline. Tocando apenas músicas em cache.";
+"general.dismiss" = "Dispensar";
 
 // MARK: - Songs Screen
 "songs.title" = "Músicas";
