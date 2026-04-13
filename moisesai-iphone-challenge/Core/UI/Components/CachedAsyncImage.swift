@@ -41,7 +41,7 @@ struct CachedAsyncImage<Placeholder: View>: View {
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             guard let uiImage = UIImage(data: data) else { return }
-            await ImageCache.shared.set(uiImage, for: url)
+            await ImageCache.shared.set(uiImage, for: url, cost: data.count)
             image = uiImage
         } catch {
             // Silently fail — placeholder stays visible
@@ -63,8 +63,7 @@ actor ImageCache {
         cache.object(forKey: url as NSURL)
     }
 
-    func set(_ image: UIImage, for url: URL) {
-        let cost = image.jpegData(compressionQuality: 1)?.count ?? 0
+    func set(_ image: UIImage, for url: URL, cost: Int) {
         cache.setObject(image, forKey: url as NSURL, cost: cost)
     }
 }
