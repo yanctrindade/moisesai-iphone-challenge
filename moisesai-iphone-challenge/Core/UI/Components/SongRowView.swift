@@ -54,9 +54,8 @@ struct SongRowView: View {
         }
         .padding(.vertical, Spacing.xs)
         .contentShape(Rectangle())
-        .accessibilityElement(children: .ignore)
+        .accessibilityElement(children: .contain)
         .accessibilityLabel(Strings.songRow(song.trackName, song.artistName))
-        .accessibilityAddTraits(.isButton)
     }
 }
 

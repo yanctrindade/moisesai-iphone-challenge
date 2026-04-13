@@ -29,14 +29,14 @@ struct Song: Identifiable, Hashable, Sendable {
 extension Song {
     init(from dto: iTunesTrack) {
         self.id = dto.trackId ?? 0
-        self.trackName = dto.trackName ?? "Unknown"
-        self.artistName = dto.artistName ?? "Unknown"
-        self.collectionName = dto.collectionName ?? "Unknown"
+        self.trackName = dto.trackName ?? ""
+        self.artistName = dto.artistName ?? ""
+        self.collectionName = dto.collectionName ?? ""
         self.collectionId = dto.collectionId ?? 0
         self.artworkURL = dto.artworkUrl100.flatMap { URL(string: $0) }
         self.previewURL = dto.previewUrl.flatMap { URL(string: $0) }
         self.durationMillis = dto.trackTimeMillis ?? 0
-        self.genre = dto.primaryGenreName ?? "Unknown"
+        self.genre = dto.primaryGenreName ?? ""
         self.releaseDate = dto.releaseDate ?? ""
     }
 }

@@ -27,13 +27,11 @@ final class URLSessionNetworkService: NetworkServiceProtocol {
         } catch let error as URLError where error.code == .notConnectedToInternet {
             throw NetworkError.noConnection
         } catch {
-            throw NetworkError.unknown(error)
+            throw NetworkError.unknown(error.localizedDescription)
         }
 
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw NetworkError.unknown(
-                NSError(domain: "NetworkService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response"])
-            )
+            throw NetworkError.invalidResponse
         }
 
         guard (200...299).contains(httpResponse.statusCode) else {
@@ -44,7 +42,7 @@ final class URLSessionNetworkService: NetworkServiceProtocol {
             let decoder = JSONDecoder()
             return try decoder.decode(T.self, from: data)
         } catch {
-            throw NetworkError.decodingFailed(error)
+            throw NetworkError.decodingFailed(error.localizedDescription)
         }
     }
 }
