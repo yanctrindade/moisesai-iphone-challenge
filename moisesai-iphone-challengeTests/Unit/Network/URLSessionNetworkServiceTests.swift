@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import moisesai_iphone_challenge
 
-@Suite("URLSessionNetworkService Tests")
+@Suite("URLSessionNetworkService Tests", .serialized)
 struct URLSessionNetworkServiceTests {
 
     private func makeSUT() -> URLSessionNetworkService {

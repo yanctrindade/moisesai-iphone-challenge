@@ -82,13 +82,15 @@ final class HomeViewModel {
             currentOffset = 0
             hasMorePages = true
 
+            let requestedTerm = currentTerm
+
             do {
                 let results = try await searchSongsUseCase.execute(
-                    term: currentTerm,
+                    term: requestedTerm,
                     limit: Constants.pageSize,
                     offset: 0
                 )
-                guard currentTerm == currentTerm else { return }
+                guard currentTerm == requestedTerm else { return }
                 songs = results
                 hasMorePages = results.count >= Constants.pageSize
                 currentOffset = results.count

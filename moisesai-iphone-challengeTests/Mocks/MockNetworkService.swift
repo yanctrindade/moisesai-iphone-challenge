@@ -1,6 +1,10 @@
 import Foundation
 @testable import moisesai_iphone_challenge
 
+enum MockError: Error {
+    case missingResultData
+}
+
 final class MockNetworkService: NetworkServiceProtocol, @unchecked Sendable {
     var requestCallCount = 0
     var lastEndpoint: Endpoint?
@@ -16,7 +20,7 @@ final class MockNetworkService: NetworkServiceProtocol, @unchecked Sendable {
         }
 
         guard let result = resultData as? T else {
-            fatalError("MockNetworkService: resultData not set or wrong type. Expected \(T.self)")
+            throw MockError.missingResultData
         }
 
         return result

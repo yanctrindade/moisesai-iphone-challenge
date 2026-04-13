@@ -2,16 +2,24 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var router = Router()
-
-    private let networkService = URLSessionNetworkService()
+    @State private var homeViewModel: HomeViewModel = {
+        let networkService = URLSessionNetworkService()
+        let repository = SongsRepository(networkService: networkService)
+        let searchUseCase = SearchSongsUseCase(repository: repository)
+        let recentlyPlayedUseCase = GetRecentlyPlayedUseCase(repository: repository)
+        return HomeViewModel(
+            searchSongsUseCase: searchUseCase,
+            getRecentlyPlayedUseCase: recentlyPlayedUseCase
+        )
+    }()
 
     var body: some View {
         NavigationStack(path: $router.path) {
-            makeHomeView()
+            HomeView(viewModel: homeViewModel)
                 .navigationDestination(for: Route.self) { route in
                     switch route {
                     case .home:
-                        makeHomeView()
+                        HomeView(viewModel: homeViewModel)
                     case .player:
                         Text("Player — Coming Soon")
                     case .album:
@@ -20,19 +28,6 @@ struct ContentView: View {
                 }
         }
         .environment(router)
-    }
-
-    private func makeHomeView() -> HomeView {
-        let repository = SongsRepository(networkService: networkService)
-        let searchUseCase = SearchSongsUseCase(repository: repository)
-        let recentlyPlayedUseCase = GetRecentlyPlayedUseCase(repository: repository)
-
-        return HomeView(
-            viewModel: HomeViewModel(
-                searchSongsUseCase: searchUseCase,
-                getRecentlyPlayedUseCase: recentlyPlayedUseCase
-            )
-        )
     }
 }
 
