@@ -1,5 +1,8 @@
 import AVFoundation
 import Combine
+import os
+
+private let logger = Logger(subsystem: "com.yantrindade.moisesai", category: "AudioPlayerService")
 
 @MainActor
 protocol AudioPlayerServiceProtocol: AnyObject, Sendable {
@@ -86,7 +89,7 @@ final class AudioPlayerService: AudioPlayerServiceProtocol, @unchecked Sendable 
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
             try AVAudioSession.sharedInstance().setActive(true)
         } catch {
-            // Audio session configuration is best-effort
+            logger.error("Failed to configure audio session: \(error.localizedDescription)")
         }
     }
 

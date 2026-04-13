@@ -160,9 +160,9 @@ struct PlayerView: View {
 
     private var repeatAccessibilityValue: String {
         switch viewModel.repeatMode {
-        case .off: "Off"
-        case .one: "Repeat one"
-        case .all: "Repeat all"
+        case .off: NSLocalizedString("accessibility.player.repeat.off", comment: "")
+        case .one: NSLocalizedString("accessibility.player.repeat.one", comment: "")
+        case .all: NSLocalizedString("accessibility.player.repeat.all", comment: "")
         }
     }
 

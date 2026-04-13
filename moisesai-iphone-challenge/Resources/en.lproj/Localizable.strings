@@ -32,6 +32,9 @@
 "accessibility.player.backward" = "Previous track";
 "accessibility.player.seekSlider" = "Song progress";
 "accessibility.player.repeat" = "Repeat mode";
+"accessibility.player.repeat.off" = "Off";
+"accessibility.player.repeat.one" = "Repeat one";
+"accessibility.player.repeat.all" = "Repeat all";
 "accessibility.player.albumArt" = "Album artwork for %@";
 "accessibility.search" = "Search songs";
 

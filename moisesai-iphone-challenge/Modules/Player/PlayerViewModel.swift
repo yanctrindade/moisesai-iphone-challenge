@@ -68,11 +68,13 @@ final class PlayerViewModel {
     }
 
     var hasNext: Bool {
-        currentIndex < playlist.count - 1 || repeatMode == .all
+        guard !playlist.isEmpty else { return false }
+        return currentIndex < playlist.count - 1 || repeatMode == .all
     }
 
     var hasPrevious: Bool {
-        currentIndex > 0 || repeatMode == .all
+        guard !playlist.isEmpty else { return false }
+        return currentIndex > 0 || repeatMode == .all
     }
 
     // MARK: - Init
