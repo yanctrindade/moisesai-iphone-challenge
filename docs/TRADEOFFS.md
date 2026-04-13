@@ -130,3 +130,103 @@ Based on [Apple's iTunes Search API documentation](https://developer.apple.com/l
 **Current:** Generic search across all attributes.
 
 **Improvement:** The API supports an `attribute` parameter to narrow search scope (e.g., `songTerm`, `artistTerm`, `albumTerm`). Could add search filters in the UI to let users search specifically by song name, artist, or album.
+
+## Future Work: Observability, Analytics & Crash Reporting
+
+All third-party integrations below would follow the **Provider design pattern** — a protocol defines the contract, a concrete provider implements it, and the app depends only on the protocol. This respects SOLID principles (Dependency Inversion, Open/Closed) and avoids hard coupling to any specific SDK.
+
+### Observability / Logging Provider
+
+**Current:** `os.Logger` for local debug logging. No remote observability.
+
+**Improvement:** Define an `ObservabilityProviderProtocol` with methods like `log(level:message:metadata:)`, `trackPerformance(name:duration:)`, and `reportBreadcrumb(_:)`. Concrete implementations could wrap:
+- **Datadog** — real-time log aggregation, APM traces, RUM (Real User Monitoring)
+- **New Relic** — mobile performance monitoring
+- **Sentry** — error tracking with breadcrumbs and performance spans
+- **Custom backend** — forward logs to an internal observability stack
+
+```swift
+protocol ObservabilityProvider: Sendable {
+    func log(_ level: LogLevel, message: String, metadata: [String: String])
+    func startSpan(_ name: String) -> SpanToken
+    func endSpan(_ token: SpanToken)
+}
+
+// Usage: inject via app container, no SDK imports in feature code
+```
+
+### Analytics Provider
+
+**Current:** No analytics tracking.
+
+**Improvement:** Define an `AnalyticsProviderProtocol` with `track(event:properties:)` and `identify(userId:traits:)`. Concrete implementations could wrap:
+- **Firebase Analytics** — event tracking, user properties, funnels
+- **Mixpanel** — behavioral analytics, cohort analysis
+- **Amplitude** — product analytics, experimentation
+- **Segment** — analytics router (sends to multiple providers)
+
+Events to track:
+- `search_performed(term:resultCount:)` — search behavior
+- `song_played(trackId:source:)` — playback from home vs album
+- `album_viewed(collectionId:)` — album engagement
+- `share_tapped(trackId:)` — share feature usage
+- `repeat_mode_changed(mode:)` — player feature adoption
+
+```swift
+protocol AnalyticsProvider: Sendable {
+    func track(_ event: String, properties: [String: Any])
+    func identify(userId: String, traits: [String: Any])
+    func screen(_ name: String)
+}
+```
+
+### Crash Reporting Provider
+
+**Current:** No crash reporting. Crashes are only visible via Xcode organizer (requires TestFlight/App Store distribution).
+
+**Improvement:** Define a `CrashReportingProviderProtocol` with `configure()`, `setUser(_:)`, and `recordError(_:)`. Concrete implementations could wrap:
+- **Firebase Crashlytics** — real-time crash reporting, non-fatal error logging
+- **Sentry** — crash reporting with breadcrumbs, release health
+- **Datadog** — crash reporting integrated with RUM and logging
+
+```swift
+protocol CrashReportingProvider: Sendable {
+    func configure()
+    func setUser(_ userId: String)
+    func recordNonFatal(_ error: Error, metadata: [String: String])
+    func log(breadcrumb: String)
+}
+```
+
+### Provider Composition
+
+All providers would be registered in a central `AppServices` container injected at app launch:
+
+```swift
+struct AppServices {
+    let analytics: AnalyticsProvider
+    let observability: ObservabilityProvider
+    let crashReporting: CrashReportingProvider
+}
+
+// In production:
+let services = AppServices(
+    analytics: FirebaseAnalyticsProvider(),
+    observability: DatadogObservabilityProvider(),
+    crashReporting: CrashlyticsProvider()
+)
+
+// In tests/previews:
+let services = AppServices(
+    analytics: NoOpAnalyticsProvider(),
+    observability: NoOpObservabilityProvider(),
+    crashReporting: NoOpCrashReportingProvider()
+)
+```
+
+**Why the Provider pattern:**
+- Feature code never imports Firebase, Datadog, or Sentry — only the protocol
+- Swapping providers requires changing one line in the container, not every call site
+- `NoOp` implementations for tests and previews — no SDK initialization overhead
+- Multiple providers can be composed (e.g., log to both Datadog and local os.Logger)
+- Follows Open/Closed principle — add new providers without modifying existing code
