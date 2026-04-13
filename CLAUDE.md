@@ -238,13 +238,33 @@ Views call `viewModel.send(.action)` for all interactions. Views switch on `view
 ### Mocking Strategy
 - Every protocol gets a `Mock` counterpart in `Tests/Mocks/`
 
+## Accessibility (VoiceOver)
+
+All UI must be fully accessible with VoiceOver:
+- Every interactive element must have `.accessibilityLabel` and `.accessibilityHint` where appropriate
+- Use `.accessibilityAddTraits` (`.isButton`, `.isHeader`, `.isSelected`, etc.)
+- Group related elements with `.accessibilityElement(children: .ignore)` + combined label
+- Player transport controls: clear labels for play/pause, forward, backward, seek slider
+- Song rows: combined label "Song by Artist", more button labeled separately
+- Use `.accessibilityValue` for dynamic state (e.g., slider position, repeat mode)
+- Test with VoiceOver enabled on simulator (Xcode > Accessibility Inspector)
+
+## Localization
+
+All user-facing strings must be localized — never hardcode strings in views.
+- Use `NSLocalizedString("key", comment: "")` for all strings
+- String keys organized by screen: `songs.title`, `player.timeline.remaining`, `album.tracks`, etc.
+- Localizable.strings files in `Resources/{lang}.lproj/`
+- Supported languages: English (`en`), Brazilian Portuguese (`pt-BR`)
+- Format strings with `String(format:)` for parameterized values
+- Error messages from `NetworkError` are also localized
+
 ## Code Style
 
 - No force unwraps (`!`) — use `guard let` or `if let`
 - `guard` for early returns
 - Extensions in separate files when non-trivial
 - Prefer value types (`struct`) for models
-- Accessibility: `.accessibilityLabel` and `.accessibilityHint` on interactive elements
 - No `print()` — use `os.Logger`
 
 ## Build & Run

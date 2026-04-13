@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct LoadingView: View {
-    var message: String = "Loading..."
+    var message: String = NSLocalizedString("general.loading", comment: "")
 
     var body: some View {
         VStack(spacing: 12) {
@@ -12,6 +12,8 @@ struct LoadingView: View {
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(message)
     }
 }
 

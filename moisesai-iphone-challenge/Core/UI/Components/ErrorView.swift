@@ -6,15 +6,16 @@ struct ErrorStateView: View {
 
     var body: some View {
         ContentUnavailableView {
-            Label("Something went wrong", systemImage: "exclamationmark.triangle")
+            Label(NSLocalizedString("general.error.title", comment: ""), systemImage: "exclamationmark.triangle")
         } description: {
             Text(message)
         } actions: {
             if let retryAction {
-                Button("Try Again", action: retryAction)
+                Button(NSLocalizedString("general.error.tryAgain", comment: ""), action: retryAction)
                     .buttonStyle(.bordered)
             }
         }
+        .accessibilityElement(children: .combine)
     }
 }
 

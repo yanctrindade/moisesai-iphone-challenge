@@ -51,12 +51,14 @@ struct SongRowView: View {
                         .frame(width: 44, height: 44)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(String(format: NSLocalizedString("accessibility.songRow.moreOptions", comment: ""), song.trackName))
             }
         }
         .padding(.vertical, 4)
         .contentShape(Rectangle())
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(song.trackName) by \(song.artistName)")
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(String(format: NSLocalizedString("accessibility.songRow", comment: ""), song.trackName, song.artistName))
+        .accessibilityAddTraits(.isButton)
     }
 }
 

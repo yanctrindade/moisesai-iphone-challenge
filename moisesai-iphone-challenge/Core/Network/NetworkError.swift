@@ -10,13 +10,13 @@ enum NetworkError: Error, LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .badURL:
-            "Invalid URL"
+            NSLocalizedString("error.badURL", comment: "")
         case .requestFailed(let statusCode):
-            "Request failed with status code \(statusCode)"
+            String(format: NSLocalizedString("error.requestFailed", comment: ""), statusCode)
         case .decodingFailed:
-            "Failed to decode response"
+            NSLocalizedString("error.decodingFailed", comment: "")
         case .noConnection:
-            "No internet connection"
+            NSLocalizedString("error.noConnection", comment: "")
         case .unknown(let error):
             error.localizedDescription
         }
