@@ -9,6 +9,62 @@ struct MoreOptionsSheet: View {
         "\(song.trackName) - \(song.artistName)"
     }
 
+    var body: some View {
+        VStack(spacing: Spacing.lg) {
+            // Song info header
+            VStack(spacing: Spacing.xs) {
+                Text(song.trackName)
+                    .font(Typography.sheetTitle)
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+
+                Text(song.artistName)
+                    .font(Typography.songSubtitle)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            .padding(.top, Spacing.xxl)
+
+            Divider()
+                .overlay(Color(.systemGray4))
+
+            // Options
+            VStack(spacing: 0) {
+                Button {
+                    dismiss()
+                    onViewAlbum()
+                } label: {
+                    HStack(spacing: Spacing.md) {
+                        Image(systemName: "rectangle.stack")
+                            .font(.body)
+                            .foregroundStyle(.white)
+                            .frame(width: 28, height: 28)
+
+                        Text(Strings.viewAlbum)
+                            .font(Typography.sheetButton)
+                            .foregroundStyle(.white)
+
+                        Spacer()
+                    }
+                    .padding(.vertical, Spacing.md)
+                    .padding(.horizontal, Spacing.xs)
+                }
+
+                shareLink
+            }
+
+            Spacer()
+        }
+        .padding(.horizontal, Spacing.xl)
+        .presentationDetents([.height(220)])
+        .presentationDragIndicator(.visible)
+        .presentationCornerRadius(Sizing.cornerRadiusSheet)
+        .presentationBackground {
+            AppColors.sheetBackground
+                .background(.ultraThinMaterial)
+        }
+    }
+
     @ViewBuilder
     private var shareLink: some View {
         if let url = song.previewURL {
@@ -27,59 +83,20 @@ struct MoreOptionsSheet: View {
     }
 
     private var shareLinkLabel: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: Spacing.md) {
             Image(systemName: "square.and.arrow.up")
-                .font(.system(size: Sizing.sheetButtonIconSize))
+                .font(.body)
                 .foregroundStyle(.white)
+                .frame(width: 28, height: 28)
+
             Text(Strings.share)
                 .font(Typography.sheetButton)
                 .foregroundStyle(.white)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, Sizing.sheetButtonPadding)
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: Sizing.cornerRadiusLarge))
-    }
-
-    var body: some View {
-        VStack(spacing: 12) {
-            Text(song.trackName)
-                .font(Typography.sheetTitle)
-                .foregroundStyle(.white)
-                .lineLimit(1)
-                .padding(.top, Spacing.xl)
-                .padding(.bottom, 4)
-
-            Button {
-                dismiss()
-                onViewAlbum()
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "music.note.list")
-                        .font(.system(size: Sizing.sheetButtonIconSize))
-                        .foregroundStyle(.white)
-                    Text(Strings.viewAlbum)
-                        .font(Typography.sheetButton)
-                        .foregroundStyle(.white)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, Sizing.sheetButtonPadding)
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: Sizing.cornerRadiusLarge))
-            }
-
-            shareLink
 
             Spacer()
         }
-        .padding(.horizontal, Spacing.xl)
-        .presentationDetents([.height(Sizing.moreOptionsSheetHeight)])
-        .presentationDragIndicator(.visible)
-        .presentationCornerRadius(Sizing.cornerRadiusSheet)
-        .presentationBackground {
-            AppColors.sheetBackground
-                .background(.ultraThinMaterial)
-        }
+        .padding(.vertical, Spacing.md)
+        .padding(.horizontal, Spacing.xs)
     }
 }
 
