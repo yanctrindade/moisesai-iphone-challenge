@@ -71,9 +71,6 @@ struct PlayerView: View {
                         collectionName: viewModel.song.collectionName,
                         artworkURL: viewModel.song.artworkURL
                     ))
-                },
-                onShare: {
-                    shareSong(viewModel.song)
                 }
             )
         }
@@ -248,20 +245,6 @@ struct PlayerView: View {
         }
     }
 
-    // MARK: - Helpers
-
-    private func shareSong(_ song: Song) {
-        var items: [Any] = ["\(song.trackName) - \(song.artistName)"]
-        if let url = song.previewURL {
-            items.append(url)
-        }
-        let activityVC = UIActivityViewController(activityItems: items, applicationActivities: nil)
-
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootVC = windowScene.windows.first?.rootViewController {
-            rootVC.present(activityVC, animated: true)
-        }
-    }
 }
 
 #Preview {

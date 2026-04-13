@@ -3,7 +3,6 @@ import SwiftUI
 struct MoreOptionsSheet: View {
     let song: Song
     var onViewAlbum: () -> Void
-    var onShare: () -> Void
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -19,26 +18,18 @@ struct MoreOptionsSheet: View {
                 dismiss()
                 onViewAlbum()
             } label: {
-                Text(NSLocalizedString("moreOptions.viewAlbum", comment: ""))
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
-
-            Button {
-                dismiss()
-                onShare()
-            } label: {
-                Text(NSLocalizedString("moreOptions.share", comment: ""))
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                HStack(spacing: 8) {
+                    Image(systemName: "music.note.list")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.white)
+                    Text(NSLocalizedString("moreOptions.viewAlbum", comment: ""))
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(.white)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
             }
 
             Spacer()
@@ -66,8 +57,7 @@ struct MoreOptionsSheet: View {
                     durationMillis: 213000, genre: "Hip-Hop",
                     releaseDate: "2017-04-14"
                 ),
-                onViewAlbum: {},
-                onShare: {}
+                onViewAlbum: {}
             )
         }
         .preferredColorScheme(.dark)
