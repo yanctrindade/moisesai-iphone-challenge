@@ -41,7 +41,7 @@ final class PlayerViewModel {
     private(set) var duration: TimeInterval = 0
     private(set) var repeatMode: RepeatMode = .off
 
-    let song: Song
+    private(set) var song: Song
     private let playlist: [Song]
     private let audioPlayer: AudioPlayerServiceProtocol
     private let saveRecentlyPlayedUseCase: SaveRecentlyPlayedUseCaseProtocol
@@ -183,6 +183,7 @@ final class PlayerViewModel {
     private func navigateToSong(at index: Int) {
         currentIndex = index
         let nextSong = playlist[index]
+        song = nextSong
 
         guard let previewURL = nextSong.previewURL else { return }
 
