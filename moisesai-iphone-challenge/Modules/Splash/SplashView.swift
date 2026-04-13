@@ -1,12 +1,15 @@
 import SwiftUI
+import SwiftData
 
 struct SplashView: View {
+    let deps: AppDependencies
+
     @State private var isActive = false
     @State private var iconOpacity: Double = 0
 
     var body: some View {
         if isActive {
-            ContentView()
+            ContentView(deps: deps)
                 .transition(.opacity)
         } else {
             splashContent
@@ -51,6 +54,14 @@ struct SplashView: View {
 }
 
 #Preview {
-    SplashView()
+    let container = try! ModelContainer(
+        for: CachedSong.self, RecentlyPlayedSong.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
+    let monitor = NetworkMonitor()
+    let deps = AppDependencies.live(modelContainer: container, networkMonitor: monitor)
+
+    SplashView(deps: deps)
+        .environment(monitor)
         .preferredColorScheme(.dark)
 }
