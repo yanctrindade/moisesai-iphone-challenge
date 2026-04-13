@@ -1,6 +1,6 @@
 # Moises AI - iPhone Challenge
 
-A music player iOS app that searches songs via the Apple iTunes Search API, caches results with Core Data for offline-first experience, and plays audio previews with AVFoundation.
+A music player iOS app that searches songs via the Apple iTunes Search API, caches results with SwiftData for offline-first experience, and plays audio previews with AVFoundation.
 
 ## Requirements
 
@@ -31,7 +31,7 @@ xcodebuild test -scheme moisesai-iphone-challenge -destination 'platform=iOS Sim
 
 ```
 View → ViewModel → UseCase → Repository → Service (Network)
-                                        → Core Data (Cache)
+                                        → SwiftData (Cache)
 ```
 
 | Layer | Responsibility |
@@ -69,7 +69,7 @@ Every ViewModel defines its own `Action` enum (user intents) and `ViewState` enu
 |---|---|
 | Swift 6 | Strict concurrency, async/await |
 | SwiftUI | All UI, NavigationStack with typed NavigationPath |
-| Core Data | Offline caching (CachedSong, RecentlyPlayedSong) |
+| SwiftData | Offline caching (CachedSong, RecentlyPlayedSong) |
 | AVFoundation | Audio playback (30s previews) |
 | URLSession | Network layer with protocol abstraction |
 | Apple Testing | Unit tests (`@Test`, `@Suite`, `#expect`) |
@@ -82,7 +82,7 @@ moisesai-iphone-challenge/
 ├── App/                          # App entry point, ContentView, navigation
 ├── Core/
 │   ├── Network/                  # Endpoint, NetworkService, NetworkError
-│   ├── Data/                     # PersistenceController, Core Data entities
+│   ├── Data/                     # SwiftData @Model classes (CachedSong, RecentlyPlayedSong)
 │   ├── Domain/                   # Song model, iTunes DTOs
 │   ├── Navigation/               # Router, Route enum
 │   └── UI/Components/            # SongRowView, ErrorView, LoadingView, MarqueeText
@@ -113,7 +113,7 @@ moisesai-iphone-challengeTests/
 - **61+ tests** across all layers: Network, Repository, UseCase, ViewModel
 - Apple Testing framework (`import Testing`)
 - Mock protocols for every dependency
-- In-memory Core Data for repository tests
+- In-memory SwiftData for repository tests
 
 ### Snapshot Tests
 - Visual regression for all screens and shared components
