@@ -32,6 +32,9 @@
 "accessibility.player.backward" = "Faixa anterior";
 "accessibility.player.seekSlider" = "Progresso da música";
 "accessibility.player.repeat" = "Modo de repetição";
+"accessibility.player.repeat.off" = "Desligado";
+"accessibility.player.repeat.one" = "Repetir uma";
+"accessibility.player.repeat.all" = "Repetir todas";
 "accessibility.player.albumArt" = "Arte do álbum de %@";
 "accessibility.search" = "Buscar músicas";
 
