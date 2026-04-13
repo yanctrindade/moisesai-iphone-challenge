@@ -3,124 +3,48 @@ import SwiftUI
 struct HomeView: View {
     @State var viewModel: HomeViewModel
     @Environment(Router.self) private var router
-    @State private var isSearching = false
+    @State private var isSearchActive = false
     @State private var selectedSongForOptions: Song?
 
     var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                if isSearching {
-                    searchingHeader
-                } else {
-                    defaultHeader
-                }
-
-                contentView
-            }
-        }
-        .navigationBarHidden(true)
-        .onAppear {
-            viewModel.send(.onAppear)
-        }
-        .refreshable {
-            await viewModel.refresh()
-        }
-        .sheet(item: $selectedSongForOptions) { song in
-            Text(song.trackName)
-                .presentationDetents([.medium])
-        }
-    }
-
-    // MARK: - Default Header (search icon + centered title)
-
-    private var defaultHeader: some View {
-        HStack {
-            Button {
-                withAnimation(.easeInOut(duration: 0.25)) {
-                    isSearching = true
-                }
-            } label: {
-                Image(systemName: "magnifyingglass.circle")
-                    .font(.title2)
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(.white)
-                    .frame(width: 44, height: 44)
-            }
-            .accessibilityLabel(NSLocalizedString("accessibility.search", comment: ""))
-
-            Spacer()
-
-            Text(NSLocalizedString("songs.title", comment: ""))
-                .font(.headline)
-                .foregroundStyle(.white)
-
-            Spacer()
-
-            Color.clear.frame(width: 44, height: 44)
-        }
-        .padding(.horizontal, 8)
-    }
-
-    // MARK: - Searching Header (large title + search bar)
-
-    private var searchingHeader: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(NSLocalizedString("songs.title", comment: ""))
-                .font(.system(size: 24, weight: .semibold))
-                .foregroundStyle(.primary)
-                .accessibilityAddTraits(.isHeader)
-
-            HStack(spacing: 10) {
-                HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundStyle(.secondary)
-
-                    TextField(
-                        NSLocalizedString("songs.search.placeholder", comment: ""),
-                        text: Binding(
-                            get: { viewModel.searchText },
-                            set: { viewModel.searchText = $0 }
-                        )
-                    )
-                    .textFieldStyle(.plain)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .foregroundStyle(.primary)
-                    .onSubmit {
-                        if !viewModel.searchText.isEmpty {
-                            viewModel.send(.search(viewModel.searchText))
-                        }
-                    }
-
-                    if !viewModel.searchText.isEmpty {
+        contentView
+            .navigationTitle(NSLocalizedString("songs.title", comment: ""))
+            .navigationBarTitleDisplayMode(.inline)
+            .searchable(
+                text: Binding(
+                    get: { viewModel.searchText },
+                    set: { viewModel.searchText = $0 }
+                ),
+                isPresented: $isSearchActive,
+                prompt: NSLocalizedString("songs.search.placeholder", comment: "")
+            )
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    if !isSearchActive {
                         Button {
-                            viewModel.searchText = ""
+                            isSearchActive = true
                         } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.secondary)
+                            Image(systemName: "magnifyingglass")
                         }
+                        .accessibilityLabel(NSLocalizedString("accessibility.search", comment: ""))
                     }
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-                .background(Color(.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-
-                Button {
-                    withAnimation(.easeInOut(duration: 0.25)) {
-                        viewModel.searchText = ""
-                        isSearching = false
-                    }
-                } label: {
-                    Text(NSLocalizedString("general.cancel", comment: ""))
-                        .foregroundStyle(.white)
                 }
             }
-        }
-        .padding(.horizontal, 16)
-        .padding(.bottom, 8)
+            .onAppear {
+                viewModel.send(.onAppear)
+            }
+            .refreshable {
+                await viewModel.refresh()
+            }
+            .sheet(item: $selectedSongForOptions) { song in
+                Text(song.trackName)
+                    .presentationDetents([.medium])
+            }
+            .onSubmit(of: .search) {
+                if !viewModel.searchText.isEmpty {
+                    viewModel.send(.search(viewModel.searchText))
+                }
+            }
     }
 
     // MARK: - Content
@@ -225,12 +149,14 @@ struct HomeView: View {
     let searchUseCase = SearchSongsUseCase(repository: repository)
     let recentlyPlayedUseCase = GetRecentlyPlayedUseCase(repository: repository)
 
-    HomeView(
-        viewModel: HomeViewModel(
-            searchSongsUseCase: searchUseCase,
-            getRecentlyPlayedUseCase: recentlyPlayedUseCase
+    NavigationStack {
+        HomeView(
+            viewModel: HomeViewModel(
+                searchSongsUseCase: searchUseCase,
+                getRecentlyPlayedUseCase: recentlyPlayedUseCase
+            )
         )
-    )
+    }
     .environment(Router())
     .preferredColorScheme(.dark)
 }
