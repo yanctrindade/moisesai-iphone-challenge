@@ -92,7 +92,22 @@
 
 **Trade-off:** Must remember to add `@MainActor` on ViewModels/Views. Mitigated by the consistent pattern documented in CLAUDE.md.
 
-## 12. Seek Slider — Commit on Release
+## 12. AppDependencies DI Container
+
+**Decision:** A single `AppDependencies` struct holds all shared services (network, audio, cache, model container, network monitor). It's created once at app launch and passed through `SplashView → ContentView`. Views that need to construct ViewModels receive the deps and use factory methods.
+
+**Why:** Previously, services and ViewModels were created ad-hoc inside `body` callbacks — `HomeViewModel` was re-created on every body re-evaluation and twice in navigation destinations. This wasted allocations and caused state loss on navigation. With a central container:
+- `HomeViewModel` is hoisted into `@State` in `ContentView.init`, created once
+- Services are created once at app launch and reused
+- `AppDependencies.live(...)` factory for production
+- Previews use the same factory with in-memory `ModelContainer` + fresh `NetworkMonitor`
+- Future mocking: `AppDependencies(networkService: MockNetworkService(), ...)` for tests
+
+**Alternative considered:** Individual `@Environment` values per service. Rejected because it scatters service discovery across views and requires injecting each service at the root.
+
+**Alternative considered:** Singleton access pattern (`NetworkService.shared`). Rejected because it hides dependencies and breaks testability.
+
+## 13. Seek Slider — Commit on Release
 
 **Decision:** The player seek slider only calls `audioPlayer.seek()` on drag end, not during drag.
 
