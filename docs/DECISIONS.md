@@ -82,6 +82,8 @@
 
 **Alternative considered:** Direct `.navigationDestination` without a router. Rejected because it scatters navigation logic across views and makes deep linking harder.
 
+**Note on navigation ownership:** Currently views call `router.push()` directly (e.g., `router.push(.player(song:playlist:))`). An alternative is moving navigation into ViewModels via actions (e.g., `viewModel.send(.selectSong(song))` → ViewModel calls `router.push()`), which would make navigation testable via `MockRouter`. This was intentionally left in views for simplicity — navigation is a UI concern in this app, and moving it to ViewModels would require injecting the router into every ViewModel. If navigation logic grows complex (conditional routing, deep links, auth gates), moving it to ViewModels would be the right next step.
+
 ## 11. SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated
 
 **Decision:** Set default actor isolation to `nonisolated` instead of Apple's new `MainActor` default.
