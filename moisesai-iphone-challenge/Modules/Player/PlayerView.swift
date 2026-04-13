@@ -22,7 +22,9 @@ struct PlayerView: View {
             }
             .padding(.horizontal, 24)
         }
+        .toolbarColorScheme(.dark, for: .navigationBar)
         .navigationBarTitleDisplayMode(.inline)
+        .tint(.white)
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Button {
@@ -33,8 +35,8 @@ struct PlayerView: View {
                     ))
                 } label: {
                     Text(viewModel.song.collectionName)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
                         .lineLimit(1)
                 }
                 .accessibilityLabel(viewModel.song.collectionName)
@@ -46,6 +48,7 @@ struct PlayerView: View {
                     selectedSongForOptions = viewModel.song
                 } label: {
                     Image(systemName: "ellipsis")
+                        .foregroundStyle(.white)
                 }
                 .accessibilityLabel(
                     String(format: NSLocalizedString("accessibility.songRow.moreOptions", comment: ""), viewModel.song.trackName)
@@ -91,7 +94,7 @@ struct PlayerView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(viewModel.song.trackName)
                     .font(.system(size: 32, weight: .semibold))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.white)
                     .lineLimit(1)
 
                 Text(viewModel.song.artistName)
@@ -107,7 +110,7 @@ struct PlayerView: View {
             } label: {
                 Image(systemName: repeatIcon)
                     .font(.title3)
-                    .foregroundStyle(viewModel.repeatMode == .off ? .secondary : .primary)
+                    .foregroundStyle(viewModel.repeatMode == .off ? Color.secondary : Color.white)
             }
             .accessibilityLabel(NSLocalizedString("accessibility.player.repeat", comment: ""))
             .accessibilityValue(repeatAccessibilityValue)
@@ -169,7 +172,7 @@ struct PlayerView: View {
             } label: {
                 Image(systemName: "backward.fill")
                     .font(.title2)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.white)
                     .frame(width: 44, height: 44)
             }
             .accessibilityLabel(NSLocalizedString("accessibility.player.backward", comment: ""))
@@ -179,7 +182,7 @@ struct PlayerView: View {
             } label: {
                 Image(systemName: viewModel.state == .playing ? "pause.fill" : "play.fill")
                     .font(.system(size: 32))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.white)
                     .frame(width: 64, height: 64)
                     .background(Color(.tertiarySystemBackground))
                     .clipShape(Circle())
@@ -191,7 +194,7 @@ struct PlayerView: View {
             } label: {
                 Image(systemName: "forward.fill")
                     .font(.title2)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.white)
                     .frame(width: 44, height: 44)
             }
             .accessibilityLabel(NSLocalizedString("accessibility.player.forward", comment: ""))
