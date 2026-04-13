@@ -44,7 +44,7 @@ struct HomeView: View {
             } label: {
                 Image(systemName: "magnifyingglass")
                     .font(.title2)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.white)
                     .frame(width: 44, height: 44)
             }
             .accessibilityLabel(NSLocalizedString("accessibility.search", comment: ""))
@@ -53,7 +53,7 @@ struct HomeView: View {
 
             Text(NSLocalizedString("songs.title", comment: ""))
                 .font(.headline)
-                .foregroundStyle(.primary)
+                .foregroundStyle(.white)
 
             Spacer()
 
@@ -67,44 +67,56 @@ struct HomeView: View {
     private var searchingHeader: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(NSLocalizedString("songs.title", comment: ""))
-                .font(.largeTitle.bold())
+                .font(.system(size: 24, weight: .semibold))
                 .foregroundStyle(.primary)
                 .accessibilityAddTraits(.isHeader)
 
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.secondary)
+            HStack(spacing: 10) {
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(.secondary)
 
-                TextField(
-                    NSLocalizedString("songs.search.placeholder", comment: ""),
-                    text: Binding(
-                        get: { viewModel.searchText },
-                        set: { viewModel.searchText = $0 }
+                    TextField(
+                        NSLocalizedString("songs.search.placeholder", comment: ""),
+                        text: Binding(
+                            get: { viewModel.searchText },
+                            set: { viewModel.searchText = $0 }
+                        )
                     )
-                )
-                .textFieldStyle(.plain)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-                .foregroundStyle(.primary)
-                .onSubmit {
+                    .textFieldStyle(.plain)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .foregroundStyle(.primary)
+                    .onSubmit {
+                        if !viewModel.searchText.isEmpty {
+                            viewModel.send(.search(viewModel.searchText))
+                        }
+                    }
+
                     if !viewModel.searchText.isEmpty {
-                        viewModel.send(.search(viewModel.searchText))
+                        Button {
+                            viewModel.searchText = ""
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .background(Color(.secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
 
-                if !viewModel.searchText.isEmpty {
-                    Button {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.25)) {
                         viewModel.searchText = ""
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.secondary)
+                        isSearching = false
                     }
+                } label: {
+                    Text(NSLocalizedString("general.cancel", comment: ""))
+                        .foregroundStyle(.white)
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(Color(.secondarySystemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 10))
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 8)
