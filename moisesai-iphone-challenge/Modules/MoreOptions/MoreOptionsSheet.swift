@@ -24,7 +24,7 @@ struct MoreOptionsSheet: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Color(.secondarySystemBackground))
+                    .background(.ultraThinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
 
@@ -37,17 +37,20 @@ struct MoreOptionsSheet: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Color(.secondarySystemBackground))
+                    .background(.ultraThinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
 
             Spacer()
         }
         .padding(.horizontal, 20)
-        .background(Color.black)
-        .presentationDetents([.height(200)])
+        .presentationDetents([.height(192)])
         .presentationDragIndicator(.visible)
-        .presentationBackground(.black)
+        .presentationCornerRadius(16)
+        .presentationBackground {
+            Color(hex: 0x262626, opacity: 0.8)
+                .background(.ultraThinMaterial)
+        }
     }
 }
 
