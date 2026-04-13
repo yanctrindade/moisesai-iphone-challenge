@@ -25,12 +25,24 @@ struct ContentView: View {
                         HomeView(viewModel: homeViewModel)
                     case .player(let song, let playlist):
                         makePlayerView(song: song, playlist: playlist)
-                    case .album:
-                        Text("Album — Coming Soon")
+                    case .album(let collectionId, let collectionName, let artworkURL):
+                        makeAlbumView(collectionId: collectionId, collectionName: collectionName, artworkURL: artworkURL)
                     }
                 }
         }
         .environment(router)
+    }
+
+    private func makeAlbumView(collectionId: Int, collectionName: String, artworkURL: URL?) -> AlbumView {
+        let useCase = FetchAlbumSongsUseCase(networkService: networkService)
+        return AlbumView(
+            viewModel: AlbumViewModel(
+                collectionId: collectionId,
+                collectionName: collectionName,
+                artworkURL: artworkURL,
+                fetchAlbumSongsUseCase: useCase
+            )
+        )
     }
 
     private func makePlayerView(song: Song, playlist: [Song]) -> PlayerView {
