@@ -3,7 +3,6 @@ import SwiftUI
 struct PlayerView: View {
     @State var viewModel: PlayerViewModel
     @Environment(Router.self) private var router
-    @State private var selectedSongForOptions: Song?
 
     var body: some View {
         ZStack {
@@ -44,8 +43,22 @@ struct PlayerView: View {
             }
 
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    selectedSongForOptions = viewModel.song
+                Menu {
+                    Button {
+                        router.push(.album(
+                            collectionId: viewModel.song.collectionId,
+                            collectionName: viewModel.song.collectionName,
+                            artworkURL: viewModel.song.artworkURL
+                        ))
+                    } label: {
+                        Label(NSLocalizedString("moreOptions.viewAlbum", comment: ""), systemImage: "music.note.list")
+                    }
+
+                    Button {
+                        sharesong(viewModel.song)
+                    } label: {
+                        Label(NSLocalizedString("moreOptions.share", comment: ""), systemImage: "square.and.arrow.up")
+                    }
                 } label: {
                     Image(systemName: "ellipsis")
                         .foregroundStyle(.white)
@@ -57,39 +70,6 @@ struct PlayerView: View {
         }
         .onAppear {
             viewModel.send(.onAppear)
-        }
-        .confirmationDialog(
-            viewModel.song.trackName,
-            isPresented: Binding(
-                get: { selectedSongForOptions != nil },
-                set: { if !$0 { selectedSongForOptions = nil } }
-            ),
-            titleVisibility: .visible
-        ) {
-            Button {
-                if let song = selectedSongForOptions {
-                    selectedSongForOptions = nil
-                    router.push(.album(
-                        collectionId: song.collectionId,
-                        collectionName: song.collectionName,
-                        artworkURL: song.artworkURL
-                    ))
-                }
-            } label: {
-                Label(NSLocalizedString("moreOptions.viewAlbum", comment: ""), systemImage: "music.note.list")
-            }
-
-            Button {
-                if let song = selectedSongForOptions {
-                    sharesong(song)
-                }
-            } label: {
-                Label(NSLocalizedString("moreOptions.share", comment: ""), systemImage: "square.and.arrow.up")
-            }
-
-            Button(NSLocalizedString("general.cancel", comment: ""), role: .cancel) {
-                selectedSongForOptions = nil
-            }
         }
     }
 
