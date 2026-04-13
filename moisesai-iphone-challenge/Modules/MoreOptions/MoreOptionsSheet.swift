@@ -87,7 +87,7 @@ struct MoreOptionsSheet: View {
     private var shareLinkLabel: some View {
         HStack(spacing: Spacing.md) {
             Image(systemName: "square.and.arrow.up")
-                .font(.body)
+                .font(.system(size: 18))
                 .foregroundStyle(.white)
                 .frame(width: 28, height: 28)
 
