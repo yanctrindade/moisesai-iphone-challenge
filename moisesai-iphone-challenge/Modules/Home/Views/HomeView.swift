@@ -26,8 +26,17 @@ struct HomeView: View {
                 await viewModel.refresh()
             }
             .sheet(item: $selectedSongForOptions) { song in
-                Text(song.trackName)
-                    .presentationDetents([.medium])
+                MoreOptionsSheet(
+                    song: song,
+                    onViewAlbum: {
+                        selectedSongForOptions = nil
+                        router.push(.album(
+                            collectionId: song.collectionId,
+                            collectionName: song.collectionName,
+                            artworkURL: song.artworkURL
+                        ))
+                    }
+                )
             }
             .onSubmit(of: .search) {
                 if !viewModel.searchText.isEmpty {
