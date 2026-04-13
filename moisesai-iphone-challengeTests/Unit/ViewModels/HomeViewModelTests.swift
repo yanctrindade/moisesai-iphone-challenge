@@ -5,21 +5,23 @@ import Testing
 @MainActor
 struct HomeViewModelTests {
 
-    private func makeSUT() -> (HomeViewModel, MockSearchSongsUseCase, MockGetRecentlyPlayedUseCase) {
+    private func makeSUT(
+        audioCache: MockAudioCacheService = MockAudioCacheService()
+    ) -> (HomeViewModel, MockSearchSongsUseCase, MockGetRecentlyPlayedUseCase, MockAudioCacheService) {
         let searchUseCase = MockSearchSongsUseCase()
         let recentlyPlayedUseCase = MockGetRecentlyPlayedUseCase()
         let viewModel = HomeViewModel(
             searchSongsUseCase: searchUseCase,
             getRecentlyPlayedUseCase: recentlyPlayedUseCase,
-            audioCache: MockAudioCacheService()
+            audioCache: audioCache
         )
-        return (viewModel, searchUseCase, recentlyPlayedUseCase)
+        return (viewModel, searchUseCase, recentlyPlayedUseCase, audioCache)
     }
 
     // MARK: - Initial State
 
     @Test func test_initialState_isIdle() {
-        let (sut, _, _) = makeSUT()
+        let (sut, _, _, _) = makeSUT()
         if case .idle = sut.state {
             // expected
         } else {
@@ -28,14 +30,14 @@ struct HomeViewModelTests {
     }
 
     @Test func test_initialState_recentlyPlayedIsEmpty() {
-        let (sut, _, _) = makeSUT()
+        let (sut, _, _, _) = makeSUT()
         #expect(sut.recentlyPlayed.isEmpty)
     }
 
     // MARK: - onAppear
 
     @Test func test_send_onAppear_loadsRecentlyPlayed() async throws {
-        let (sut, _, recentlyPlayedUseCase) = makeSUT()
+        let (sut, _, recentlyPlayedUseCase, _) = makeSUT()
         recentlyPlayedUseCase.executeResult = SongFixture.makeList(count: 3)
 
         sut.send(.onAppear)
@@ -48,7 +50,7 @@ struct HomeViewModelTests {
     // MARK: - Search
 
     @Test func test_searchText_debouncesThenExecutes() async throws {
-        let (sut, searchUseCase, _) = makeSUT()
+        let (sut, searchUseCase, _, _) = makeSUT()
         searchUseCase.executeResult = SongFixture.makeList(count: 2)
 
         sut.searchText = "daft punk"
@@ -59,7 +61,7 @@ struct HomeViewModelTests {
     }
 
     @Test func test_searchText_whenResultsFound_stateIsLoaded() async throws {
-        let (sut, searchUseCase, _) = makeSUT()
+        let (sut, searchUseCase, _, _) = makeSUT()
         let songs = SongFixture.makeList(count: 3)
         searchUseCase.executeResult = songs
 
@@ -74,7 +76,7 @@ struct HomeViewModelTests {
     }
 
     @Test func test_searchText_whenEmpty_stateIsIdle() async throws {
-        let (sut, searchUseCase, _) = makeSUT()
+        let (sut, searchUseCase, _, _) = makeSUT()
         searchUseCase.executeResult = SongFixture.makeList(count: 2)
 
         sut.searchText = "test"
@@ -91,7 +93,7 @@ struct HomeViewModelTests {
     }
 
     @Test func test_searchText_whenError_stateIsError() async throws {
-        let (sut, searchUseCase, _) = makeSUT()
+        let (sut, searchUseCase, _, _) = makeSUT()
         searchUseCase.executeError = NetworkError.noConnection
 
         sut.searchText = "test"
@@ -105,7 +107,7 @@ struct HomeViewModelTests {
     }
 
     @Test func test_searchText_showsCachedResultsFirst() async throws {
-        let (sut, searchUseCase, _) = makeSUT()
+        let (sut, searchUseCase, _, _) = makeSUT()
         let cached = SongFixture.makeList(count: 2)
         searchUseCase.cachedResultsResult = cached
         searchUseCase.executeResult = SongFixture.makeList(count: 5)
@@ -125,7 +127,7 @@ struct HomeViewModelTests {
     // MARK: - Clear Search
 
     @Test func test_send_clearSearch_resetsState() async throws {
-        let (sut, searchUseCase, _) = makeSUT()
+        let (sut, searchUseCase, _, _) = makeSUT()
         searchUseCase.executeResult = SongFixture.makeList(count: 3)
 
         sut.searchText = "test"
@@ -143,7 +145,7 @@ struct HomeViewModelTests {
     // MARK: - Load More (Pagination)
 
     @Test func test_send_loadMore_appendsResults() async throws {
-        let (sut, searchUseCase, _) = makeSUT()
+        let (sut, searchUseCase, _, _) = makeSUT()
         let firstPage = SongFixture.makeList(count: 20)
         searchUseCase.executeResult = firstPage
 
@@ -164,7 +166,7 @@ struct HomeViewModelTests {
     }
 
     @Test func test_send_loadMore_whenNoMorePages_doesNothing() async throws {
-        let (sut, searchUseCase, _) = makeSUT()
+        let (sut, searchUseCase, _, _) = makeSUT()
         // Less than page size = no more pages
         searchUseCase.executeResult = SongFixture.makeList(count: 5)
 
@@ -181,7 +183,7 @@ struct HomeViewModelTests {
     // MARK: - Refresh
 
     @Test func test_refresh_reloadsCurrentSearch() async throws {
-        let (sut, searchUseCase, _) = makeSUT()
+        let (sut, searchUseCase, _, _) = makeSUT()
         searchUseCase.executeResult = SongFixture.makeList(count: 3)
 
         sut.searchText = "test"
@@ -200,11 +202,76 @@ struct HomeViewModelTests {
     }
 
     @Test func test_refresh_whenNoSearch_loadsRecentlyPlayed() async throws {
-        let (sut, _, recentlyPlayedUseCase) = makeSUT()
+        let (sut, _, recentlyPlayedUseCase, _) = makeSUT()
         recentlyPlayedUseCase.executeResult = SongFixture.makeList(count: 4)
 
         await sut.refresh()
 
         #expect(sut.recentlyPlayed.count == 4)
+    }
+
+    // MARK: - Cached Track IDs
+
+    @Test func test_onAppear_populatesCachedTrackIds() async throws {
+        let cache = MockAudioCacheService()
+        cache.cachedTrackIds = [1, 3]
+        let (sut, _, recentlyPlayedUseCase, _) = makeSUT(audioCache: cache)
+        recentlyPlayedUseCase.executeResult = SongFixture.makeList(count: 5)
+
+        sut.send(.onAppear)
+        try await Task.sleep(for: .milliseconds(100))
+
+        #expect(sut.cachedTrackIds == [1, 3])
+        #expect(sut.isCached(SongFixture.make(id: 1)) == true)
+        #expect(sut.isCached(SongFixture.make(id: 2)) == false)
+    }
+
+    @Test func test_search_populatesCachedTrackIds() async throws {
+        let cache = MockAudioCacheService()
+        cache.cachedTrackIds = [2]
+        let (sut, searchUseCase, _, _) = makeSUT(audioCache: cache)
+        searchUseCase.executeResult = SongFixture.makeList(count: 3)
+
+        sut.searchText = "test"
+        try await Task.sleep(for: .seconds(1))
+
+        #expect(sut.cachedTrackIds == [2])
+    }
+
+    @Test func test_clearSearch_refreshesCachedTrackIds() async throws {
+        let cache = MockAudioCacheService()
+        cache.cachedTrackIds = [1]
+        let (sut, searchUseCase, recentlyPlayedUseCase, _) = makeSUT(audioCache: cache)
+        recentlyPlayedUseCase.executeResult = [SongFixture.make(id: 1)]
+        searchUseCase.executeResult = [SongFixture.make(id: 5)]
+
+        sut.send(.onAppear)
+        try await Task.sleep(for: .milliseconds(100))
+        #expect(sut.cachedTrackIds == [1])
+
+        sut.searchText = "test"
+        try await Task.sleep(for: .seconds(1))
+
+        sut.send(.clearSearch)
+        // After clearSearch, cachedTrackIds only reflects recentlyPlayed (songs list cleared)
+        #expect(sut.cachedTrackIds == [1])
+    }
+
+    @Test func test_loadMore_refreshesCachedTrackIds() async throws {
+        let cache = MockAudioCacheService()
+        let (sut, searchUseCase, _, _) = makeSUT(audioCache: cache)
+
+        // First page
+        searchUseCase.executeResult = SongFixture.makeList(count: 20)
+        sut.searchText = "test"
+        try await Task.sleep(for: .seconds(1))
+
+        // Mark a new song as cached before pagination
+        cache.cachedTrackIds = [25]
+        searchUseCase.executeResult = [SongFixture.make(id: 25)]
+        sut.send(.loadMore)
+        try await Task.sleep(for: .milliseconds(200))
+
+        #expect(sut.cachedTrackIds.contains(25))
     }
 }

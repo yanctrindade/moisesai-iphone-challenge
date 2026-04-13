@@ -22,7 +22,7 @@ struct SplashView: View {
             LinearGradient(
                 gradient: Gradient(stops: [
                     .init(color: AppColors.splashGradientStart, location: 0.0),
-                    .init(color: AppColors.splashGradientStart, location: 0.8),
+                    .init(color: AppColors.splashGradientStart, location: 0.5),
                     .init(color: AppColors.splashGradientEnd, location: 1.0)
                 ]),
                 startPoint: UnitPoint(x: 0.18, y: 0.0),

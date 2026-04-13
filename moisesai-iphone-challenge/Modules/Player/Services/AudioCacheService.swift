@@ -6,29 +6,37 @@ private let logger = Logger(subsystem: "com.yantrindade.moisesai", category: "Au
 actor AudioCacheService: AudioCacheServiceProtocol {
     static let shared = AudioCacheService()
 
-    private let fileManager: FileManager
-    private let cacheDirectory: URL
+    /// FileManager is documented thread-safe for its core methods, so we expose it nonisolated
+    /// to allow reading file existence from any thread without actor hops.
+    nonisolated let fileManager: FileManager
+    nonisolated let cacheDirectory: URL
+    nonisolated let fileExtension: String
+
     private let maxCacheSize: Int64 = 100 * 1024 * 1024 // 100MB
-    private let fileExtension = "m4a"
 
     /// Tracks in-flight download tasks keyed by trackId to prevent concurrent duplicate downloads
     private var inFlightDownloads: [Int: Task<URL, Error>] = [:]
 
-    init(fileManager: FileManager = .default) {
+    init(fileManager: FileManager = .default, fileExtension: String = "m4a") {
         self.fileManager = fileManager
+        self.fileExtension = fileExtension
         let caches = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)[0]
         self.cacheDirectory = caches.appendingPathComponent("AudioCache", isDirectory: true)
         try? fileManager.createDirectory(at: cacheDirectory, withIntermediateDirectories: true)
     }
 
     nonisolated func localURL(for trackId: Int) -> URL? {
-        let url = Self.buildCacheURL(for: trackId, fileManager: .default, fileExtension: "m4a")
-        return FileManager.default.fileExists(atPath: url.path) ? url : nil
+        let url = cacheURLNonisolated(for: trackId)
+        return fileManager.fileExists(atPath: url.path) ? url : nil
     }
 
     nonisolated func hasCache(for trackId: Int) -> Bool {
-        let url = Self.buildCacheURL(for: trackId, fileManager: .default, fileExtension: "m4a")
-        return FileManager.default.fileExists(atPath: url.path)
+        let url = cacheURLNonisolated(for: trackId)
+        return fileManager.fileExists(atPath: url.path)
+    }
+
+    nonisolated private func cacheURLNonisolated(for trackId: Int) -> URL {
+        cacheDirectory.appendingPathComponent("\(trackId).\(fileExtension)")
     }
 
     func cache(remoteURL: URL, trackId: Int) async throws -> URL {
@@ -91,15 +99,7 @@ actor AudioCacheService: AudioCacheServiceProtocol {
     }
 
     private func cacheURL(for trackId: Int) -> URL {
-        cacheDirectory.appendingPathComponent("\(trackId).\(fileExtension)")
-    }
-
-    /// Static helper for nonisolated methods that can't touch actor state.
-    /// Keeps the URL-building logic in one place; the directory name ("AudioCache") and extension are shared with `init`.
-    private static func buildCacheURL(for trackId: Int, fileManager: FileManager, fileExtension: String) -> URL {
-        let caches = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-        let directory = caches.appendingPathComponent("AudioCache", isDirectory: true)
-        return directory.appendingPathComponent("\(trackId).\(fileExtension)")
+        cacheURLNonisolated(for: trackId)
     }
 
     private func evictIfNeeded() {

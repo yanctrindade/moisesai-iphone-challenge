@@ -9,11 +9,14 @@ final class PlayerViewModel {
 
     // MARK: - ViewState
 
-    enum ViewState {
+    enum ViewState: Equatable {
         case idle
         case playing
         case paused
+        /// No cached audio and no network connection.
         case offlineUnavailable
+        /// Song has no preview URL from the API (distinct from offline).
+        case noPreviewAvailable
     }
 
     // MARK: - Action
@@ -141,7 +144,7 @@ final class PlayerViewModel {
     private func startPlayback() {
         guard let previewURL = song.previewURL else {
             logger.warning("No preview URL for song: \(self.song.trackName)")
-            state = .offlineUnavailable
+            state = .noPreviewAvailable
             return
         }
 
@@ -211,7 +214,7 @@ final class PlayerViewModel {
     }
 
     private func togglePlayPause() {
-        guard state != .offlineUnavailable else { return }
+        guard state != .offlineUnavailable, state != .noPreviewAvailable else { return }
         if audioPlayer.isPlaying {
             audioPlayer.pause()
             state = .paused
@@ -255,7 +258,7 @@ final class PlayerViewModel {
         song = nextSong
 
         guard let previewURL = nextSong.previewURL else {
-            state = .offlineUnavailable
+            state = .noPreviewAvailable
             return
         }
 
