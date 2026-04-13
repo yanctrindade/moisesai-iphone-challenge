@@ -53,6 +53,9 @@ struct MarqueeText: View {
                         .lineLimit(1)
                 }
             }
+            // Hide until GeometryReader has measured to avoid a flash
+            // while containerWidth transitions from 0 to the real value.
+            .opacity(geo.size.width > 0 ? 1 : 0)
             .onAppear { containerWidth = geo.size.width }
             .onChange(of: geo.size.width) { _, new in containerWidth = new }
         }

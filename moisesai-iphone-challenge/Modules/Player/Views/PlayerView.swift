@@ -182,6 +182,9 @@ struct PlayerView: View {
                 }
             )
             .tint(.white)
+            .disabled(viewModel.duration <= 0)
+            .opacity(viewModel.duration > 0 ? 1 : 0.3)
+            .animation(.easeIn(duration: 0.2), value: viewModel.duration > 0)
             .accessibilityLabel(Strings.seekSlider)
 
             HStack {
