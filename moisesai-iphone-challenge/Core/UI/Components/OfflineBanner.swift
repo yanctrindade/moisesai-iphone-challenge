@@ -39,7 +39,7 @@ private struct OfflineBanner: View {
             .background(Color(.systemGray6).opacity(0.9))
             .background(.ultraThinMaterial)
             .transition(.move(edge: .top).combined(with: .opacity))
-            .accessibilityElement(children: .combine)
+            .accessibilityElement(children: .contain)
             .accessibilityLabel(Strings.offlineMessage)
         }
     }

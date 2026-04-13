@@ -35,6 +35,9 @@ final class HomeViewModel {
 
     private(set) var state: ViewState = .idle
     private(set) var recentlyPlayed: [Song] = []
+    /// TrackIds that have audio cached to disk. Populated from `audioCache` on appear and on song list updates.
+    /// Views read from this set instead of hitting the file system per row during rendering.
+    private(set) var cachedTrackIds: Set<Int> = []
     var searchText: String = "" {
         didSet { handleSearchTextChanged() }
     }
@@ -48,15 +51,22 @@ final class HomeViewModel {
 
     private let searchSongsUseCase: SearchSongsUseCaseProtocol
     private let getRecentlyPlayedUseCase: GetRecentlyPlayedUseCaseProtocol
+    private let audioCache: AudioCacheServiceProtocol
 
     // MARK: - Init
 
     init(
         searchSongsUseCase: SearchSongsUseCaseProtocol,
-        getRecentlyPlayedUseCase: GetRecentlyPlayedUseCaseProtocol
+        getRecentlyPlayedUseCase: GetRecentlyPlayedUseCaseProtocol,
+        audioCache: AudioCacheServiceProtocol = AudioCacheService.shared
     ) {
         self.searchSongsUseCase = searchSongsUseCase
         self.getRecentlyPlayedUseCase = getRecentlyPlayedUseCase
+        self.audioCache = audioCache
+    }
+
+    func isCached(_ song: Song) -> Bool {
+        cachedTrackIds.contains(song.id)
     }
 
     // MARK: - Actions
@@ -94,6 +104,7 @@ final class HomeViewModel {
                 hasMorePages = results.count >= Constants.pageSize
                 currentOffset = results.count
                 state = results.isEmpty ? .idle : .loaded(songs)
+                refreshCachedTrackIds()
             } catch {
                 if songs.isEmpty {
                     state = .error(error.localizedDescription)
@@ -141,6 +152,7 @@ final class HomeViewModel {
         if !cached.isEmpty {
             songs = cached
             state = .loaded(songs)
+            refreshCachedTrackIds()
         } else {
             state = .loading
         }
@@ -156,6 +168,7 @@ final class HomeViewModel {
             hasMorePages = results.count >= Constants.pageSize
             currentOffset = results.count
             state = results.isEmpty ? .idle : .loaded(songs)
+            refreshCachedTrackIds()
         } catch {
             guard trimmedTerm == currentTerm, !Task.isCancelled else { return }
             if songs.isEmpty {
@@ -179,6 +192,7 @@ final class HomeViewModel {
             hasMorePages = results.count >= Constants.pageSize
             currentOffset += results.count
             state = .loaded(songs)
+            refreshCachedTrackIds()
         } catch {
             logger.error("Failed to load next page: \(error.localizedDescription)")
         }
@@ -188,6 +202,12 @@ final class HomeViewModel {
 
     private func loadRecentlyPlayed() async {
         recentlyPlayed = await getRecentlyPlayedUseCase.execute()
+        refreshCachedTrackIds()
+    }
+
+    private func refreshCachedTrackIds() {
+        let allSongs = songs + recentlyPlayed
+        cachedTrackIds = Set(allSongs.map(\.id).filter { audioCache.hasCache(for: $0) })
     }
 
     private func clearSearch() {
@@ -197,5 +217,6 @@ final class HomeViewModel {
         songs = []
         hasMorePages = true
         state = .idle
+        refreshCachedTrackIds()
     }
 }

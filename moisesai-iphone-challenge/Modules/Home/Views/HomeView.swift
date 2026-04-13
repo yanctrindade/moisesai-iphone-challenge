@@ -9,7 +9,7 @@ struct HomeView: View {
     @State private var selectedSongForOptions: Song?
 
     private func isDisabled(_ song: Song) -> Bool {
-        !networkMonitor.isConnected && !AudioCacheService.shared.hasCache(for: song.id)
+        !networkMonitor.isConnected && !viewModel.isCached(song)
     }
 
     var body: some View {

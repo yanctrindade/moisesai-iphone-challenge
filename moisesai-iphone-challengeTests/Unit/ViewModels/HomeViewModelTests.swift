@@ -10,7 +10,8 @@ struct HomeViewModelTests {
         let recentlyPlayedUseCase = MockGetRecentlyPlayedUseCase()
         let viewModel = HomeViewModel(
             searchSongsUseCase: searchUseCase,
-            getRecentlyPlayedUseCase: recentlyPlayedUseCase
+            getRecentlyPlayedUseCase: recentlyPlayedUseCase,
+            audioCache: MockAudioCacheService()
         )
         return (viewModel, searchUseCase, recentlyPlayedUseCase)
     }

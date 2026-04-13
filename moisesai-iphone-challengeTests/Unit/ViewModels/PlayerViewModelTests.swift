@@ -18,7 +18,8 @@ struct PlayerViewModelTests {
             song: currentSong,
             playlist: songs,
             audioPlayer: audioPlayer,
-            saveRecentlyPlayedUseCase: saveUseCase
+            saveRecentlyPlayedUseCase: saveUseCase,
+            audioCache: MockAudioCacheService()
         )
         return (viewModel, audioPlayer, saveUseCase)
     }
