@@ -58,9 +58,38 @@ struct PlayerView: View {
         .onAppear {
             viewModel.send(.onAppear)
         }
-        .sheet(item: $selectedSongForOptions) { song in
-            Text(song.trackName)
-                .presentationDetents([.medium])
+        .confirmationDialog(
+            viewModel.song.trackName,
+            isPresented: Binding(
+                get: { selectedSongForOptions != nil },
+                set: { if !$0 { selectedSongForOptions = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button {
+                if let song = selectedSongForOptions {
+                    selectedSongForOptions = nil
+                    router.push(.album(
+                        collectionId: song.collectionId,
+                        collectionName: song.collectionName,
+                        artworkURL: song.artworkURL
+                    ))
+                }
+            } label: {
+                Label(NSLocalizedString("moreOptions.viewAlbum", comment: ""), systemImage: "music.note.list")
+            }
+
+            Button {
+                if let song = selectedSongForOptions {
+                    sharesong(song)
+                }
+            } label: {
+                Label(NSLocalizedString("moreOptions.share", comment: ""), systemImage: "square.and.arrow.up")
+            }
+
+            Button(NSLocalizedString("general.cancel", comment: ""), role: .cancel) {
+                selectedSongForOptions = nil
+            }
         }
     }
 
@@ -198,6 +227,21 @@ struct PlayerView: View {
                     .frame(width: 44, height: 44)
             }
             .accessibilityLabel(NSLocalizedString("accessibility.player.forward", comment: ""))
+        }
+    }
+
+    // MARK: - Helpers
+
+    private func sharesong(_ song: Song) {
+        var items: [Any] = ["\(song.trackName) - \(song.artistName)"]
+        if let url = song.previewURL {
+            items.append(url)
+        }
+        let activityVC = UIActivityViewController(activityItems: items, applicationActivities: nil)
+
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootVC = windowScene.windows.first?.rootViewController {
+            rootVC.present(activityVC, animated: true)
         }
     }
 }
