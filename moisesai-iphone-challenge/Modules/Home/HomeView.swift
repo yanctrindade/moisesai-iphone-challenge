@@ -11,7 +11,12 @@ struct HomeView: View {
             Color.black.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                headerView
+                if isSearching {
+                    searchingHeader
+                } else {
+                    defaultHeader
+                }
+
                 contentView
             }
         }
@@ -28,13 +33,13 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Header
+    // MARK: - Default Header (search icon + centered title)
 
-    private var headerView: some View {
+    private var defaultHeader: some View {
         HStack {
             Button {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    isSearching.toggle()
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    isSearching = true
                 }
             } label: {
                 Image(systemName: "magnifyingglass")
@@ -46,57 +51,64 @@ struct HomeView: View {
 
             Spacer()
 
-            if !isSearching {
-                Text(NSLocalizedString("songs.title", comment: ""))
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-            }
+            Text(NSLocalizedString("songs.title", comment: ""))
+                .font(.headline)
+                .foregroundStyle(.primary)
 
             Spacer()
 
-            Color.clear
-                .frame(width: 44, height: 44)
+            Color.clear.frame(width: 44, height: 44)
         }
         .padding(.horizontal, 8)
-        .overlay {
-            if isSearching {
-                searchBarView
-                    .transition(.opacity)
-            }
-        }
     }
 
-    private var searchBarView: some View {
-        HStack {
-            Color.clear.frame(width: 44)
+    // MARK: - Searching Header (large title + search bar)
 
-            TextField(
-                NSLocalizedString("songs.search.placeholder", comment: ""),
-                text: Binding(
-                    get: { viewModel.searchText },
-                    set: { viewModel.searchText = $0 }
+    private var searchingHeader: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(NSLocalizedString("songs.title", comment: ""))
+                .font(.largeTitle.bold())
+                .foregroundStyle(.primary)
+                .accessibilityAddTraits(.isHeader)
+
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+
+                TextField(
+                    NSLocalizedString("songs.search.placeholder", comment: ""),
+                    text: Binding(
+                        get: { viewModel.searchText },
+                        set: { viewModel.searchText = $0 }
+                    )
                 )
-            )
-            .textFieldStyle(.plain)
-            .autocorrectionDisabled()
-            .textInputAutocapitalization(.never)
-            .foregroundStyle(.primary)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(Color(.secondarySystemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+                .textFieldStyle(.plain)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+                .foregroundStyle(.primary)
+                .onSubmit {
+                    if !viewModel.searchText.isEmpty {
+                        viewModel.send(.search(viewModel.searchText))
+                    }
+                }
 
-            if !viewModel.searchText.isEmpty {
-                Button {
-                    viewModel.searchText = ""
-                    viewModel.send(.clearSearch)
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.secondary)
+                if !viewModel.searchText.isEmpty {
+                    Button {
+                        viewModel.searchText = ""
+                        viewModel.send(.clearSearch)
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 10))
         }
-        .padding(.trailing, 8)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 8)
     }
 
     // MARK: - Content
