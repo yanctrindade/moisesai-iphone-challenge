@@ -1,0 +1,41 @@
+// MARK: - General
+"general.loading" = "Loading...";
+"general.error.title" = "Something went wrong";
+"general.error.tryAgain" = "Try Again";
+"general.unknown" = "Unknown";
+
+// MARK: - Songs Screen
+"songs.title" = "Songs";
+"songs.search.placeholder" = "Search songs...";
+"songs.empty.title" = "No Songs";
+"songs.empty.message" = "Search for your favorite songs";
+"songs.recentlyPlayed" = "Recently Played";
+
+// MARK: - Player Screen
+"player.timeline.remaining" = "-%@";
+
+// MARK: - Album Screen
+"album.tracks" = "Tracks";
+
+// MARK: - More Options
+"moreOptions.viewAlbum" = "View Album";
+"moreOptions.share" = "Share";
+"moreOptions.addToFavorites" = "Add to Favorites";
+"moreOptions.removeFromFavorites" = "Remove from Favorites";
+
+// MARK: - Accessibility
+"accessibility.songRow" = "%@ by %@";
+"accessibility.songRow.moreOptions" = "More options for %@";
+"accessibility.player.playPause" = "Play or Pause";
+"accessibility.player.forward" = "Next track";
+"accessibility.player.backward" = "Previous track";
+"accessibility.player.seekSlider" = "Song progress";
+"accessibility.player.repeat" = "Repeat mode";
+"accessibility.player.albumArt" = "Album artwork for %@";
+"accessibility.search" = "Search songs";
+
+// MARK: - Network Errors
+"error.badURL" = "Invalid URL";
+"error.requestFailed" = "Request failed with status code %d";
+"error.decodingFailed" = "Failed to decode response";
+"error.noConnection" = "No internet connection";

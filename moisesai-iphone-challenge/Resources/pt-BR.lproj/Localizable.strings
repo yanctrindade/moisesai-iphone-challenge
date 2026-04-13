@@ -1,0 +1,41 @@
+// MARK: - General
+"general.loading" = "Carregando...";
+"general.error.title" = "Algo deu errado";
+"general.error.tryAgain" = "Tentar Novamente";
+"general.unknown" = "Desconhecido";
+
+// MARK: - Songs Screen
+"songs.title" = "Músicas";
+"songs.search.placeholder" = "Buscar músicas...";
+"songs.empty.title" = "Sem Músicas";
+"songs.empty.message" = "Busque suas músicas favoritas";
+"songs.recentlyPlayed" = "Tocadas Recentemente";
+
+// MARK: - Player Screen
+"player.timeline.remaining" = "-%@";
+
+// MARK: - Album Screen
+"album.tracks" = "Faixas";
+
+// MARK: - More Options
+"moreOptions.viewAlbum" = "Ver Álbum";
+"moreOptions.share" = "Compartilhar";
+"moreOptions.addToFavorites" = "Adicionar aos Favoritos";
+"moreOptions.removeFromFavorites" = "Remover dos Favoritos";
+
+// MARK: - Accessibility
+"accessibility.songRow" = "%@ por %@";
+"accessibility.songRow.moreOptions" = "Mais opções para %@";
+"accessibility.player.playPause" = "Reproduzir ou Pausar";
+"accessibility.player.forward" = "Próxima faixa";
+"accessibility.player.backward" = "Faixa anterior";
+"accessibility.player.seekSlider" = "Progresso da música";
+"accessibility.player.repeat" = "Modo de repetição";
+"accessibility.player.albumArt" = "Arte do álbum de %@";
+"accessibility.search" = "Buscar músicas";
+
+// MARK: - Network Errors
+"error.badURL" = "URL inválida";
+"error.requestFailed" = "Requisição falhou com código %d";
+"error.decodingFailed" = "Falha ao decodificar resposta";
+"error.noConnection" = "Sem conexão com a internet";
