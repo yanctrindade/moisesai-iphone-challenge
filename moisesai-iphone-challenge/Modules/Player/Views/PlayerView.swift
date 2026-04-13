@@ -104,38 +104,41 @@ struct PlayerView: View {
     // MARK: - Song Info
 
     private var songInfoView: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                MarqueeText(
-                    text: viewModel.song.trackName,
-                    font: Typography.playerSongTitle,
-                    color: .white,
-                    maxWidth: 280,
-                    uiFont: .systemFont(ofSize: 32, weight: .semibold)
-                )
-                .frame(height: 40)
-                .id(viewModel.song.id)
+        VStack(alignment: .leading, spacing: 4) {
+            // Full-width song title
+            MarqueeText(
+                text: viewModel.song.trackName,
+                font: Typography.playerSongTitle,
+                color: .white,
+                maxWidth: .infinity,
+                uiFont: .systemFont(ofSize: 32, weight: .semibold)
+            )
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(height: 40)
+            .id(viewModel.song.id)
 
+            // Artist name + repeat button on the same row
+            HStack {
                 Text(viewModel.song.artistName)
                     .font(Typography.playerArtistName)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-            }
-            .animation(.easeInOut(duration: 0.3), value: viewModel.song.id)
 
-            Spacer()
+                Spacer()
 
-            Button {
-                viewModel.send(.toggleRepeat)
-            } label: {
-                Image(systemName: repeatIcon)
-                    .font(Typography.repeatIcon)
-                    .foregroundStyle(viewModel.repeatMode == .off ? Color.secondary : Color.white)
+                Button {
+                    viewModel.send(.toggleRepeat)
+                } label: {
+                    Image(systemName: repeatIcon)
+                        .font(Typography.repeatIcon)
+                        .foregroundStyle(viewModel.repeatMode == .off ? Color.secondary : Color.white)
+                }
+                .animation(.easeInOut(duration: 0.2), value: viewModel.repeatMode)
+                .accessibilityLabel(Strings.repeatMode)
+                .accessibilityValue(repeatAccessibilityValue)
             }
-            .animation(.easeInOut(duration: 0.2), value: viewModel.repeatMode)
-            .accessibilityLabel(Strings.repeatMode)
-            .accessibilityValue(repeatAccessibilityValue)
         }
+        .animation(.easeInOut(duration: 0.3), value: viewModel.song.id)
     }
 
     private var repeatIcon: String {

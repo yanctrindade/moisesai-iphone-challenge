@@ -6,9 +6,10 @@ private let logger = Logger(subsystem: "com.yantrindade.moisesai", category: "Au
 actor AudioCacheService: AudioCacheServiceProtocol {
     static let shared = AudioCacheService()
 
-    /// FileManager is documented thread-safe for its core methods, so we expose it nonisolated
-    /// to allow reading file existence from any thread without actor hops.
-    nonisolated let fileManager: FileManager
+    /// FileManager is documented thread-safe for its core methods (fileExists, etc.) but
+    /// isn't marked Sendable by Apple. Use nonisolated(unsafe) so the nonisolated read
+    /// methods can access it without actor hops.
+    nonisolated(unsafe) let fileManager: FileManager
     nonisolated let cacheDirectory: URL
     nonisolated let fileExtension: String
 
