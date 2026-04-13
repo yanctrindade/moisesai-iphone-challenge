@@ -1,6 +1,7 @@
 import AVFoundation
 import Combine
 
+@MainActor
 protocol AudioPlayerServiceProtocol: AnyObject, Sendable {
     var isPlaying: Bool { get }
     var currentTime: TimeInterval { get }
