@@ -6,10 +6,20 @@ struct SplashView: View {
 
     @State private var isActive = false
     @State private var iconOpacity: Double = 0
+    @State private var homeViewModel: HomeViewModel
+
+    init(deps: AppDependencies) {
+        self.deps = deps
+        let repository = deps.songsRepository
+        _homeViewModel = State(initialValue: HomeViewModel(
+            searchSongsUseCase: SearchSongsUseCase(repository: repository),
+            getRecentlyPlayedUseCase: GetRecentlyPlayedUseCase(repository: repository)
+        ))
+    }
 
     var body: some View {
         if isActive {
-            ContentView(deps: deps)
+            ContentView(deps: deps, homeViewModel: homeViewModel)
                 .transition(.opacity)
         } else {
             splashContent
@@ -49,7 +59,15 @@ struct SplashView: View {
                 iconOpacity = 1
             }
 
-            try? await Task.sleep(for: .seconds(Timing.splashFadeIn + Timing.splashHold))
+            // Wait in parallel for: (a) the brand-moment animation to complete,
+            // and (b) Home's initial data load + SwiftData warmup to finish.
+            // Splash dismisses only when BOTH are done, so the user never lands
+            // on an unresponsive Home screen. If preload is slow, we hold splash
+            // (showing the animated icon) instead of freezing the user on Home.
+            async let brandMoment: Void = Task.sleep(for: .seconds(Timing.splashFadeIn + Timing.splashHold))
+            async let ready: Void = homeViewModel.preload()
+            _ = try? await brandMoment
+            await ready
 
             guard !Task.isCancelled else { return }
 
