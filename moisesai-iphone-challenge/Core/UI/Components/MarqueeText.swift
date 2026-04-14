@@ -32,21 +32,51 @@ struct MarqueeText: View {
     }
 
     var body: some View {
-        let shouldScroll = textWidth > maxWidth
+        if maxWidth.isFinite {
+            // Simple path when a concrete maxWidth was provided (e.g., toolbar title).
+            // GeometryReader inside a toolbar doesn't always report a usable size,
+            // so we compare directly against the given maxWidth.
+            fixedWidthBody
+        } else {
+            // Dynamic container width (e.g., full-width player song title).
+            geometryWidthBody
+        }
+    }
 
-        Group {
-            if shouldScroll {
-                scrollingContent
-            } else {
-                Text(text)
-                    .font(font)
-                    .foregroundStyle(color)
-                    .lineLimit(1)
+    @ViewBuilder
+    private var fixedWidthBody: some View {
+        let shouldScroll = textWidth > maxWidth
+        if shouldScroll {
+            scrollingContent(width: maxWidth)
+        } else {
+            Text(text)
+                .font(font)
+                .foregroundStyle(color)
+                .lineLimit(1)
+        }
+    }
+
+    private var geometryWidthBody: some View {
+        GeometryReader { geo in
+            let available = geo.size.width
+
+            Group {
+                if available <= 0 {
+                    // No real width yet — show nothing (no scroll animation started)
+                    Color.clear
+                } else if textWidth > available {
+                    scrollingContent(width: available)
+                } else {
+                    Text(text)
+                        .font(font)
+                        .foregroundStyle(color)
+                        .lineLimit(1)
+                }
             }
         }
     }
 
-    private var scrollingContent: some View {
+    private func scrollingContent(width: CGFloat) -> some View {
         let totalWidth = textWidth + spacing
 
         return HStack(spacing: spacing) {
@@ -61,7 +91,7 @@ struct MarqueeText: View {
                 .fixedSize()
         }
         .offset(x: offset)
-        .frame(width: maxWidth, alignment: .leading)
+        .frame(width: width, alignment: .leading)
         .clipped()
         .onAppear {
             startAnimation(totalWidth: totalWidth)

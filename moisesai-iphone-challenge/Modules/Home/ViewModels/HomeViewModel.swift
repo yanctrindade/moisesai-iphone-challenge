@@ -38,6 +38,8 @@ final class HomeViewModel {
     /// TrackIds that have audio cached to disk. Populated from `audioCache` on appear and on song list updates.
     /// Views read from this set instead of hitting the file system per row during rendering.
     private(set) var cachedTrackIds: Set<Int> = []
+    /// True once initial recently-played load has completed. Splash uses this to hold until Home is interactive.
+    private(set) var isReady: Bool = false
     var searchText: String = "" {
         didSet { handleSearchTextChanged() }
     }
@@ -74,6 +76,9 @@ final class HomeViewModel {
     func send(_ action: Action) {
         switch action {
         case .onAppear:
+            // Always refresh recently-played on appear so returning from Player
+            // picks up the just-played song. preload() handles the first-load
+            // gating separately.
             Task { await loadRecentlyPlayed() }
         case .search(let term):
             performSearch(term)
@@ -82,6 +87,15 @@ final class HomeViewModel {
         case .clearSearch:
             clearSearch()
         }
+    }
+
+    /// Awaitable initial load. Callers (e.g., SplashView) can `await` this to know
+    /// when Home is ready to be shown without the UI feeling frozen on first launch.
+    /// Subsequent calls are no-ops once `isReady` is true.
+    func preload() async {
+        guard !isReady else { return }
+        await loadRecentlyPlayed()
+        isReady = true
     }
 
     func refresh() async {
@@ -217,12 +231,22 @@ final class HomeViewModel {
 
     private func loadRecentlyPlayed() async {
         recentlyPlayed = await getRecentlyPlayedUseCase.execute()
-        refreshCachedTrackIds()
+        await refreshCachedTrackIdsAsync()
     }
 
     private func refreshCachedTrackIds() {
-        let allSongs = songs + recentlyPlayed
-        cachedTrackIds = Set(allSongs.map(\.id).filter { audioCache.hasCache(for: $0) })
+        // Fire-and-forget background refresh so callers (search, pagination, etc.)
+        // don't stall the MainActor on disk I/O per song.
+        Task { await refreshCachedTrackIdsAsync() }
+    }
+
+    private func refreshCachedTrackIdsAsync() async {
+        let ids = (songs + recentlyPlayed).map(\.id)
+        let cache = audioCache
+        let cached = await Task.detached(priority: .utility) {
+            Set(ids.filter { cache.hasCache(for: $0) })
+        }.value
+        cachedTrackIds = cached
     }
 
     private func clearSearch() {

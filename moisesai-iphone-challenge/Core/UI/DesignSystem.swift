@@ -96,9 +96,9 @@ enum Sizing {
 // MARK: - Timing
 
 enum Timing {
-    static let splashFadeIn: Double = 0.5
-    static let splashHold: Double = 2.0
-    static let splashFadeOut: Double = 0.4
+    static let splashFadeIn: Double = 0.3
+    static let splashHold: Double = 0.7
+    static let splashFadeOut: Double = 0.3
     static let searchDebounce: Duration = .milliseconds(500)
     static let seekDebounce: Duration = .milliseconds(300)
     static let timeObserverThreshold: Double = 0.1

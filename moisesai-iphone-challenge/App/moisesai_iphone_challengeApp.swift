@@ -11,7 +11,16 @@ struct moisesai_iphone_challengeApp: App {
 
     private let modelContainer: ModelContainer = {
         do {
-            return try ModelContainer(for: CachedSong.self, RecentlyPlayedSong.self)
+            let container = try ModelContainer(for: CachedSong.self, RecentlyPlayedSong.self)
+            // Warm up SwiftData off the main thread so the first fetch on Home
+            // doesn't pay the cold-start cost (schema setup, store file open).
+            Task.detached(priority: .utility) {
+                let context = ModelContext(container)
+                var descriptor = FetchDescriptor<RecentlyPlayedSong>()
+                descriptor.fetchLimit = 1
+                _ = try? context.fetch(descriptor)
+            }
+            return container
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }

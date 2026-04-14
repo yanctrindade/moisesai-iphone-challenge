@@ -128,3 +128,11 @@
 **Why:** Seeking AVPlayer on every frame during drag causes jitter and poor performance. During drag, only the visual time updates. On release, a single seek is committed with a 300ms debounce to prevent the time observer from snapping the slider back before AVPlayer catches up.
 
 **Alternative considered:** Throttled seeking during drag. Rejected because even throttled seeks cause audible glitches in short preview tracks.
+
+## 16. Data-Gated Splash Dismissal
+
+**Decision:** Splash stays visible until both a minimum brand-moment animation AND Home's initial data load complete. Splash owns the `HomeViewModel`, awaits `preload()` in parallel with the animation, then hands the preloaded ViewModel to `ContentView`.
+
+**Why:** A fixed-timer splash dismisses on schedule even if SwiftData store setup, first fetch, and cache scan haven't finished — so the user lands on an unresponsive Home and perceives it as frozen. Gating the transition on `preload()` means the user never sees a non-interactive Home: either the data is ready or they're still watching the animated splash. We also warm SwiftData with a `Task.detached` fetch at app init and run `hasCache` disk scans off the MainActor so `preload()` resolves quickly in practice.
+
+**Alternative considered:** Skeleton/loading overlay on Home during initial load. Rejected because the splash already serves that purpose and a second overlay would double-flash. Also considered an arbitrary longer splash timer — rejected because on warm launches the user would wait needlessly.

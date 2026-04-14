@@ -24,7 +24,7 @@ final class NetworkMonitor: NetworkMonitorProtocol {
 
         monitor.pathUpdateHandler = { [weak self] path in
             let connected = path.status == .satisfied
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
                 guard let self else { return }
                 if self.isConnected != connected {
                     logger.info("Network status changed: \(connected ? "connected" : "disconnected")")

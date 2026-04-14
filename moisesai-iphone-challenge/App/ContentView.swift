@@ -7,15 +7,19 @@ struct ContentView: View {
     @State private var router = Router()
     @State private var homeViewModel: HomeViewModel
 
-    init(deps: AppDependencies) {
+    init(deps: AppDependencies, homeViewModel: HomeViewModel? = nil) {
         self.deps = deps
-        let repository = deps.songsRepository
-        _homeViewModel = State(
-            initialValue: HomeViewModel(
-                searchSongsUseCase: SearchSongsUseCase(repository: repository),
-                getRecentlyPlayedUseCase: GetRecentlyPlayedUseCase(repository: repository)
+        if let homeViewModel {
+            _homeViewModel = State(initialValue: homeViewModel)
+        } else {
+            let repository = deps.songsRepository
+            _homeViewModel = State(
+                initialValue: HomeViewModel(
+                    searchSongsUseCase: SearchSongsUseCase(repository: repository),
+                    getRecentlyPlayedUseCase: GetRecentlyPlayedUseCase(repository: repository)
+                )
             )
-        )
+        }
     }
 
     var body: some View {
